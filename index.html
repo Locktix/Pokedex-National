@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex Challenge</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Pokédex Challenge</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="captured-count">0</span>
+                    <span class="stat-label">Capturés</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="percentage">0%</span>
+                    <span class="stat-label">Complétion</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="remaining">1025</span>
+                    <span class="stat-label">Restants</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="page-navigation">
+                <button id="prev-page" class="nav-btn">← Précédent</button>
+                <span class="page-info">Page <span id="current-page">1</span> sur 64</span>
+                <button id="next-page" class="nav-btn">Suivant →</button>
+            </div>
+            <div class="view-controls">
+                <button id="toggle-view" class="view-btn">Vue Grille</button>
+                <button id="reset-collection" class="reset-btn">Réinitialiser</button>
+            </div>
+        </div>
+
+        <main>
+            <div class="pokemon-grid" id="pokemon-grid">
+                <!-- Les Pokémon seront générés ici -->
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-main">
+                    <p>🎮 Pokédex Challenge - Collectionneur de classeur 4x4</p>
+                    <p>💾 Progression sauvegardée automatiquement dans votre navigateur</p>
+                </div>
+                
+                <div class="footer-disclaimer">
+                    <p><strong>⚠️ Disclaimer :</strong> Ce projet est créé à des fins éducatives et de divertissement uniquement. 
+                    Tous les noms de Pokémon, logos et marques déposées sont la propriété de Nintendo, Game Freak et The Pokémon Company.</p>
+                </div>
+                
+                <div class="footer-credits">
+                    <p><strong>👨‍💻 Développé avec ❤️ par Alan P.</strong></p>
+                    <p>📅 2024 - Pokédex Challenge</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
