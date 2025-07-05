@@ -958,26 +958,40 @@ function goToPokemon(pokemonNumber) {
     // Fermer la recherche
     clearSearch();
 
-    // Attendre que la carte soit bien présente dans le DOM puis CAPTURER
+    // Attendre que la carte soit bien présente dans le DOM puis METTRE EN SURBRILLANCE
     let tries = 0;
-    function findAndCaptureCard() {
+    function findAndHighlightCard() {
         const pokemonCard = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
         if (pokemonCard) {
-            console.log(`[SEARCH] Carte trouvée, déclenchement de la capture immédiate`);
+            console.log(`[SEARCH] Carte trouvée, mise en surbrillance`);
             
-            // DÉCLENCHER LA CAPTURE RÉELLE AVEC SAUVEGARDE IMMÉDIATE
-            togglePokemonCapture(pokemonNumber);
+            // METTRE EN SURBRILLANCE SANS CAPTURER
+            const isCaptured = capturedPokemon.has(pokemonNumber);
+            
+            // Mettre à jour l'affichage selon l'état actuel
+            if (isCaptured) {
+                pokemonCard.classList.add('captured');
+            } else {
+                pokemonCard.classList.remove('captured');
+            }
+            
+            // Animation de surbrillance pour indiquer qu'on a trouvé le Pokémon
+            pokemonCard.style.animation = 'capturedPulse 1s ease';
+            setTimeout(() => {
+                pokemonCard.style.animation = '';
+                console.log(`[SEARCH] Animation de surbrillance terminée`);
+            }, 1000);
             
         } else if (tries < 15) {
             tries++;
-            setTimeout(findAndCaptureCard, 100);
+            setTimeout(findAndHighlightCard, 100);
         } else {
             console.log(`[SEARCH] ERREUR: Carte non trouvée après 15 tentatives`);
         }
     }
     
     // Démarrer la recherche de la carte
-    setTimeout(findAndCaptureCard, 200);
+    setTimeout(findAndHighlightCard, 200);
 }
 
 // Afficher un message de bienvenue
