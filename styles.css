@@ -162,6 +162,25 @@ h1 {
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
+}
+
+.search-result-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+}
+
+.search-result-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
 }
 
 .search-result-item:hover {
@@ -304,6 +323,9 @@ main {
     position: relative;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .pokemon-card:hover {
@@ -314,6 +336,10 @@ main {
 .pokemon-card.captured {
     background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
     animation: capturedPulse 0.5s ease;
+}
+
+.pokemon-card.captured .card-overlay {
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.1) 50%, rgba(78, 205, 196, 0.4) 100%);
 }
 
 .pokemon-card.captured::after {

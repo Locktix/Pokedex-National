@@ -139,7 +139,68 @@ function createPokemonCard(number, name, isCaptured) {
         togglePokemonCapture(number);
     });
     
+    // Charger l'image de fond pour ce Pokémon
+    loadPokemonImage(card, number);
+    
     return card;
+}
+
+// Charger l'image d'un Pokémon depuis l'API
+async function loadPokemonImage(card, pokemonNumber) {
+    try {
+        // URL de l'image officielle de Pokémon
+        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonNumber}.png`;
+        
+        // Créer un élément image pour précharger
+        const img = new Image();
+        
+        img.onload = () => {
+            // Une fois l'image chargée, l'ajouter comme fond
+            card.style.backgroundImage = `url(${imageUrl})`;
+            card.style.backgroundSize = 'cover';
+            card.style.backgroundPosition = 'center';
+            card.style.backgroundRepeat = 'no-repeat';
+            
+            // Ajouter un overlay semi-transparent pour améliorer la lisibilité du texte
+            card.style.position = 'relative';
+            
+            // Créer un overlay si il n'existe pas déjà
+            if (!card.querySelector('.card-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'card-overlay';
+                overlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%);
+                    pointer-events: none;
+                    z-index: 1;
+                `;
+                card.appendChild(overlay);
+            }
+            
+            // S'assurer que le texte reste au-dessus de l'overlay
+            const numberElement = card.querySelector('.pokemon-number');
+            const nameElement = card.querySelector('.pokemon-name');
+            if (numberElement) numberElement.style.zIndex = '2';
+            if (nameElement) nameElement.style.zIndex = '2';
+        };
+        
+        img.onerror = () => {
+            // En cas d'erreur, utiliser une image par défaut ou un motif
+            console.warn(`Impossible de charger l'image pour le Pokémon #${pokemonNumber}`);
+            card.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        };
+        
+        // Démarrer le chargement
+        img.src = imageUrl;
+        
+    } catch (error) {
+        console.error(`Erreur lors du chargement de l'image pour le Pokémon #${pokemonNumber}:`, error);
+        card.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    }
 }
 
 // Basculer la capture d'un Pokémon
@@ -403,14 +464,52 @@ function displaySearchResults(results) {
     }
     
     searchResults.innerHTML = results.map(pokemon => `
-        <div class="search-result-item" onclick="goToPokemon(${pokemon.number})">
-            <div class="search-result-number">#${pokemon.number.toString().padStart(3, '0')}</div>
-            <div class="search-result-name">${pokemon.name}</div>
-            ${pokemon.isCaptured ? '<div class="search-result-captured">✓</div>' : ''}
+        <div class="search-result-item" onclick="goToPokemon(${pokemon.number})" data-pokemon-number="${pokemon.number}">
+            <div class="search-result-image"></div>
+            <div class="search-result-content">
+                <div class="search-result-number">#${pokemon.number.toString().padStart(3, '0')}</div>
+                <div class="search-result-name">${pokemon.name}</div>
+                ${pokemon.isCaptured ? '<div class="search-result-captured">✓</div>' : ''}
+            </div>
         </div>
     `).join('');
     
+    // Charger les images pour les résultats de recherche
+    results.forEach(pokemon => {
+        const resultItem = searchResults.querySelector(`[data-pokemon-number="${pokemon.number}"]`);
+        if (resultItem) {
+            loadSearchResultImage(resultItem, pokemon.number);
+        }
+    });
+    
     showSearchResults();
+}
+
+// Charger l'image pour un résultat de recherche
+async function loadSearchResultImage(resultItem, pokemonNumber) {
+    try {
+        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonNumber}.png`;
+        const imageElement = resultItem.querySelector('.search-result-image');
+        
+        const img = new Image();
+        
+        img.onload = () => {
+            imageElement.style.backgroundImage = `url(${imageUrl})`;
+            imageElement.style.backgroundSize = 'cover';
+            imageElement.style.backgroundPosition = 'center';
+            imageElement.style.backgroundRepeat = 'no-repeat';
+        };
+        
+        img.onerror = () => {
+            console.warn(`Impossible de charger l'image pour le Pokémon #${pokemonNumber} dans la recherche`);
+            imageElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        };
+        
+        img.src = imageUrl;
+        
+    } catch (error) {
+        console.error(`Erreur lors du chargement de l'image de recherche pour le Pokémon #${pokemonNumber}:`, error);
+    }
 }
 
 function showSearchResults() {
