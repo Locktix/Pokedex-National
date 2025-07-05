@@ -7,6 +7,7 @@ const TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
 let currentPage = 1;
 let capturedPokemon = new Set();
 let pokemonList = [];
+let currentFilter = 'all'; // 'all', 'captured', 'missing'
 
 // Éléments DOM
 const pokemonGrid = document.getElementById('pokemon-grid');
@@ -16,11 +17,13 @@ const percentageElement = document.getElementById('percentage');
 const remainingElement = document.getElementById('remaining');
 const prevPageBtn = document.getElementById('prev-page');
 const nextPageBtn = document.getElementById('next-page');
-const resetBtn = document.getElementById('reset-collection');
 const searchInput = document.getElementById('search-input');
 const searchBtn = document.getElementById('search-btn');
 const clearSearchBtn = document.getElementById('clear-search');
 const searchResults = document.getElementById('search-results');
+const showAllBtn = document.getElementById('show-all');
+const showCapturedBtn = document.getElementById('show-captured');
+const showMissingBtn = document.getElementById('show-missing');
 
 // Initialisation
 async function init() {
@@ -34,6 +37,9 @@ async function init() {
         // Afficher la première page
         displayCurrentPage();
         updateStats();
+        
+        // Appliquer le filtre sauvegardé
+        setFilter(currentFilter);
         
         // Ajouter les event listeners
         setupEventListeners();
@@ -63,12 +69,6 @@ function setupEventListeners() {
         }
     });
     
-    resetBtn.addEventListener('click', () => {
-        if (confirm('Êtes-vous sûr de vouloir réinitialiser votre collection ? Cette action ne peut pas être annulée.')) {
-            resetCollection();
-        }
-    });
-    
     // Event listeners pour la recherche
     searchInput.addEventListener('input', handleSearch);
     searchBtn.addEventListener('click', () => handleSearch());
@@ -88,6 +88,11 @@ function setupEventListeners() {
             handleSearch();
         }
     });
+    
+    // Event listeners pour les filtres
+    showAllBtn.addEventListener('click', () => setFilter('all'));
+    showCapturedBtn.addEventListener('click', () => setFilter('captured'));
+    showMissingBtn.addEventListener('click', () => setFilter('missing'));
 }
 
 // Afficher la page courante
@@ -110,6 +115,9 @@ function displayCurrentPage() {
         const pokemonCard = createPokemonCard(pokemonNumber, pokemonName, isCaptured);
         pokemonGrid.appendChild(pokemonCard);
     }
+    
+    // Appliquer le filtre actuel
+    applyCurrentFilter();
     
     // Mettre à jour l'état des boutons de navigation
     updateNavigationButtons();
@@ -219,22 +227,19 @@ function loadSavedData() {
             capturedPokemon = new Set(data.capturedPokemon || []);
             console.log(`Données chargées: ${capturedPokemon.size} Pokémon capturés`);
         }
+        
+        // Charger la préférence de filtre
+        const savedFilter = localStorage.getItem('pokemonFilter');
+        if (savedFilter && ['all', 'captured', 'missing'].includes(savedFilter)) {
+            currentFilter = savedFilter;
+        }
     } catch (error) {
         console.error('Erreur lors du chargement des données sauvegardées:', error);
         capturedPokemon = new Set();
     }
 }
 
-// Réinitialiser la collection
-function resetCollection() {
-    capturedPokemon.clear();
-    displayCurrentPage();
-    updateStats();
-    saveData();
-    
-    // Afficher une notification
-    showNotification('Collection réinitialisée !', 'success');
-}
+
 
 // Afficher une notification
 function showNotification(message, type = 'info') {
@@ -316,6 +321,55 @@ document.addEventListener('DOMContentLoaded', init);
 
 // Sauvegarder automatiquement toutes les 30 secondes
 setInterval(saveData, 30000);
+
+// Fonctions de filtrage
+function setFilter(filter) {
+    currentFilter = filter;
+    
+    // Mettre à jour l'état actif des boutons
+    showAllBtn.classList.toggle('active', filter === 'all');
+    showCapturedBtn.classList.toggle('active', filter === 'captured');
+    showMissingBtn.classList.toggle('active', filter === 'missing');
+    
+    // Appliquer le filtre
+    applyCurrentFilter();
+    
+    // Mettre à jour les statistiques selon le filtre
+    updateStats();
+    
+    // Sauvegarder la préférence de filtre
+    localStorage.setItem('pokemonFilter', filter);
+}
+
+function applyCurrentFilter() {
+    const cards = document.querySelectorAll('.pokemon-card');
+    
+    cards.forEach(card => {
+        const pokemonNumber = parseInt(card.dataset.pokemonNumber);
+        const isCaptured = capturedPokemon.has(pokemonNumber);
+        
+        // Retirer les classes précédentes
+        card.classList.remove('hidden', 'fade-out');
+        
+        // Appliquer le filtre
+        switch (currentFilter) {
+            case 'captured':
+                if (!isCaptured) {
+                    card.classList.add('hidden');
+                }
+                break;
+            case 'missing':
+                if (isCaptured) {
+                    card.classList.add('hidden');
+                }
+                break;
+            case 'all':
+            default:
+                // Afficher tous les Pokémon
+                break;
+        }
+    });
+}
 
 // Fonctions de recherche
 function handleSearch() {
