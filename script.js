@@ -335,7 +335,39 @@ function setupEventListeners() {
             updateStats();
         }
     });
-    
+
+    // Aller à la première page
+    const firstPageBtn = document.getElementById('first-page');
+    if (firstPageBtn) {
+        firstPageBtn.addEventListener('click', () => {
+            currentPage = 1;
+            displayCurrentPage();
+            updateStats();
+        });
+    }
+
+    // Aller à une page précise
+    const gotoInput = document.getElementById('goto-page-input');
+    const gotoBtn = document.getElementById('goto-page-btn');
+    if (gotoBtn && gotoInput) {
+        gotoBtn.addEventListener('click', () => {
+            const page = parseInt(gotoInput.value, 10);
+            if (!isNaN(page) && page >= 1 && page <= TOTAL_PAGES) {
+                currentPage = page;
+                displayCurrentPage();
+                updateStats();
+            } else {
+                showNotification('Numéro de page invalide', 'error');
+            }
+        });
+        // Entrée clavier
+        gotoInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                gotoBtn.click();
+            }
+        });
+    }
+
     // Event listeners pour la recherche
     searchInput.addEventListener('input', handleSearch);
     searchBtn.addEventListener('click', () => handleSearch());

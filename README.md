@@ -124,6 +124,6 @@ Que la chance soit avec vous dans votre quête pour compléter votre Pokédex ! 
 
 Ce projet est créé à des fins éducatives et de divertissement. Tous les noms de Pokémon sont la propriété de Nintendo/Game Freak/The Pokémon Company.
 
-**Développé avec ❤️ par Alan B.**
+**Développé avec ❤️ par Locktix.**
 
 *Dernière mise à jour : 2025* 
