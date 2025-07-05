@@ -211,12 +211,38 @@ function togglePokemonCapture(pokemonNumber) {
         capturedPokemon.add(pokemonNumber);
     }
     
-    // Mettre à jour l'affichage
-    displayCurrentPage();
+    // Mettre à jour seulement la carte concernée
+    updatePokemonCard(pokemonNumber);
     updateStats();
     
     // Sauvegarder les données
     saveData();
+}
+
+// Mettre à jour une carte Pokémon spécifique sans recharger les images
+function updatePokemonCard(pokemonNumber) {
+    const card = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
+    if (card) {
+        const isCaptured = capturedPokemon.has(pokemonNumber);
+        
+        // Mettre à jour la classe CSS
+        card.classList.toggle('captured', isCaptured);
+        
+        // Mettre à jour l'overlay si il existe
+        const overlay = card.querySelector('.card-overlay');
+        if (overlay) {
+            if (isCaptured) {
+                overlay.style.background = 'linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.1) 50%, rgba(78, 205, 196, 0.4) 100%)';
+            } else {
+                overlay.style.background = 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%)';
+            }
+        }
+        
+        // Appliquer le filtre actuel si nécessaire
+        if (currentFilter !== 'all') {
+            applyCurrentFilter();
+        }
+    }
 }
 
 // Mettre à jour les statistiques
