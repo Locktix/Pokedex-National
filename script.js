@@ -533,19 +533,30 @@ async function loadPokemonImage(card, pokemonNumber) {
 }
 
 // Basculer la capture d'un Pokémon
-function togglePokemonCapture(pokemonNumber) {
-    if (capturedPokemon.has(pokemonNumber)) {
+async function togglePokemonCapture(pokemonNumber) {
+    const wasCaptured = capturedPokemon.has(pokemonNumber);
+    
+    if (wasCaptured) {
         capturedPokemon.delete(pokemonNumber);
+        console.log(`[CAPTURE] Pokémon #${pokemonNumber} relâché`);
     } else {
         capturedPokemon.add(pokemonNumber);
+        console.log(`[CAPTURE] Pokémon #${pokemonNumber} capturé`);
     }
     
     // Mettre à jour seulement la carte concernée
     updatePokemonCard(pokemonNumber);
     updateStats();
     
-    // Sauvegarder les données utilisateur
-    saveUserData();
+    // SAUVEGARDE IMMÉDIATE DANS FIREBASE
+    try {
+        await saveUserDataImmediate();
+        console.log(`[CAPTURE] Données sauvegardées immédiatement pour Pokémon #${pokemonNumber}`);
+    } catch (error) {
+        console.error(`[CAPTURE] Erreur lors de la sauvegarde immédiate:`, error);
+        // Fallback vers la sauvegarde normale
+        saveUserData();
+    }
 }
 
 // Mettre à jour une carte Pokémon spécifique sans recharger les images
@@ -643,7 +654,26 @@ async function loadUserData() {
     }
 }
 
-// Sauvegarder les données utilisateur dans Firebase
+// Sauvegarder les données utilisateur dans Firebase (sauvegarde immédiate)
+async function saveUserDataImmediate() {
+    if (!currentUser) return;
+    
+    try {
+        const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        await updateDoc(doc(window.db, 'users', currentUser.uid), {
+            capturedPokemon: Array.from(capturedPokemon),
+            currentFilter: currentFilter,
+            lastSaved: new Date()
+        });
+        console.log('[SAUVEGARDE] Données sauvegardées immédiatement dans Firebase');
+        return true;
+    } catch (error) {
+        console.error('[SAUVEGARDE] Erreur lors de la sauvegarde immédiate:', error);
+        throw error; // Propager l'erreur pour le fallback
+    }
+}
+
+// Sauvegarder les données utilisateur dans Firebase (sauvegarde normale)
 async function saveUserData() {
     if (!currentUser) return;
     
@@ -928,26 +958,26 @@ function goToPokemon(pokemonNumber) {
     // Fermer la recherche
     clearSearch();
 
-    // Attendre que la carte soit bien présente dans le DOM
+    // Attendre que la carte soit bien présente dans le DOM puis CAPTURER
     let tries = 0;
-    function highlightCard() {
+    function findAndCaptureCard() {
         const pokemonCard = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
         if (pokemonCard) {
-            if (capturedPokemon.has(pokemonNumber)) {
-                pokemonCard.classList.add('captured');
-            } else {
-                pokemonCard.classList.remove('captured');
-            }
-            pokemonCard.style.animation = 'capturedPulse 1s ease';
-            setTimeout(() => {
-                pokemonCard.style.animation = '';
-            }, 1000);
-        } else if (tries < 10) {
+            console.log(`[SEARCH] Carte trouvée, déclenchement de la capture immédiate`);
+            
+            // DÉCLENCHER LA CAPTURE RÉELLE AVEC SAUVEGARDE IMMÉDIATE
+            togglePokemonCapture(pokemonNumber);
+            
+        } else if (tries < 15) {
             tries++;
-            setTimeout(highlightCard, 50);
+            setTimeout(findAndCaptureCard, 100);
+        } else {
+            console.log(`[SEARCH] ERREUR: Carte non trouvée après 15 tentatives`);
         }
     }
-    highlightCard();
+    
+    // Démarrer la recherche de la carte
+    setTimeout(findAndCaptureCard, 200);
 }
 
 // Afficher un message de bienvenue
