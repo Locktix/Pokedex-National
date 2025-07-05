@@ -34,8 +34,11 @@
     <div id="app-container" class="container" style="display: none;">
         <header>
             <div class="user-info">
-                <span id="user-email"></span>
-                <button id="logout-btn" class="logout-btn">Déconnexion</button>
+                <span class="user-id-block"><span id="user-email"></span><span id="user-role-badge" class="role-badge" style="margin-left:8px;"></span></span>
+                <div class="user-actions">
+                    <button id="settings-btn" class="settings-btn" title="Paramètres">⚙️</button>
+                    <button id="logout-btn" class="logout-btn">Déconnexion</button>
+                </div>
             </div>
             <h1>🎮 Pokédex Challenge</h1>
             <div class="stats">
@@ -87,6 +90,92 @@
         <footer class="footer-minimal">
             <span>Pokédex Challenge &copy; 2025 – par Locktix</span>
         </footer>
+    </div>
+
+    <!-- Modal des paramètres -->
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Paramètres</h3>
+                <button id="close-settings" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>🎨 Apparence</h4>
+                    <div class="setting-item">
+                        <label for="dark-mode-toggle">Mode sombre</label>
+                        <input type="checkbox" id="dark-mode-toggle" class="toggle-switch">
+                    </div>
+                </div>
+                
+                <!-- Section Admin (visible uniquement pour les admins) -->
+                <div id="admin-settings" class="settings-section" style="display: none;">
+                    <h4>👑 Administration</h4>
+                    
+                    <div class="setting-item">
+                        <label>📊 Statistiques globales</label>
+                        <button id="view-global-stats" class="admin-btn">Voir les stats</button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>👥 Gestion des utilisateurs</label>
+                        <button id="manage-users" class="admin-btn">Gérer les utilisateurs</button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>🎯 Réinitialiser progression</label>
+                        <input type="text" id="reset-user-uid" placeholder="UID utilisateur" class="admin-input">
+                        <button id="reset-user-progress" class="admin-btn danger">Réinitialiser</button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>🔧 Mode maintenance</label>
+                        <input type="checkbox" id="maintenance-mode" class="toggle-switch">
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>📈 Export des données</label>
+                        <button id="export-data" class="admin-btn">Exporter JSON</button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>🎨 Pokémon par page</label>
+                        <input type="number" id="pokemon-per-page" min="4" max="50" value="16" class="admin-input">
+                        <button id="update-grid-size" class="admin-btn">Mettre à jour</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal des statistiques globales -->
+    <div id="stats-modal" class="modal" style="display: none;">
+        <div class="modal-content stats-modal">
+            <div class="modal-header">
+                <h3>📊 Statistiques Globales</h3>
+                <button id="close-stats" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="stats-content">
+                    <p>Chargement des statistiques...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de gestion des utilisateurs -->
+    <div id="users-modal" class="modal" style="display: none;">
+        <div class="modal-content users-modal">
+            <div class="modal-header">
+                <h3>👥 Gestion des Utilisateurs</h3>
+                <button id="close-users" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="users-content">
+                    <p>Chargement des utilisateurs...</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK -->

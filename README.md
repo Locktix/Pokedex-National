@@ -1,34 +1,70 @@
 # 🎮 Pokédex Challenge
 
-Un site web interactif pour suivre votre progression dans le challenge de collectionner les 1025 Pokémon dans un classeur 4x4 (32 pages).
+Une application web interactive pour capturer et collectionner tous les Pokémon de la génération 1 à 9 (1025 Pokémon au total).
 
-## 📋 Fonctionnalités
+## ✨ Fonctionnalités
 
-- **Grille 4x4** : Affichage de 16 Pokémon par page (32 pages au total)
-- **Navigation intuitive** : Boutons pour naviguer entre les pages
-- **Capture/Relâche** : Cliquez sur un Pokémon pour le marquer comme capturé
-- **Statistiques en temps réel** : Suivi du nombre de Pokémon capturés, pourcentage de complétion
-- **Sauvegarde automatique** : Vos données sont sauvegardées localement dans votre navigateur
-- **Design responsive** : Fonctionne sur mobile, tablette et desktop
-- **Raccourcis clavier** : Navigation avec les flèches, capture avec la barre d'espace
+- **Collection complète** : 1025 Pokémon de la génération 1 à 9
+- **Interface moderne** : Design responsive et animations fluides
+- **Recherche avancée** : Recherche en temps réel avec navigation clavier
+- **Filtres intelligents** : Afficher tous, capturés ou manquants
+- **Pagination** : Navigation facile entre les pages
+- **Sauvegarde cloud** : Synchronisation Firebase pour sauvegarder votre progression
+- **Système de rôles** : Gestion des permissions utilisateur
+- **Mode sombre** : Interface adaptée pour les yeux
 
-## 🚀 Installation et démarrage
+## 👥 Système de rôles
 
-### Option 1 : Avec serveur local (Recommandée)
+L'application dispose d'un système de rôles avec trois niveaux d'accès :
 
-1. **Installer Python** (si pas déjà fait) : [python.org](https://python.org)
-2. **Lancer le serveur** :
-   ```bash
-   python server.py
-   ```
-3. **Ouvrir le navigateur** : Le site s'ouvrira automatiquement sur `http://localhost:8000`
+### 🔵 Membre (Rôle par défaut)
+- **Permissions** : Voir les Pokémon, capturer des Pokémon
+- **Fonctionnalités** : Accès complet à la collection et aux fonctionnalités de base
 
-### Option 2 : Sans serveur
+### 🟠 Testeur
+- **Permissions** : Toutes les permissions Membre + test des nouvelles fonctionnalités
+- **Fonctionnalités** : Accès aux fonctionnalités expérimentales et de test
 
-⚠️ **Note** : Cette méthode peut causer des erreurs CORS dans certains navigateurs.
+### 🔴 Administrateur
+- **Permissions** : Toutes les permissions Testeur + gestion des utilisateurs et des rôles
+- **Fonctionnalités** :
+  - Gestion complète des utilisateurs
+  - Modification des rôles des autres utilisateurs
+  - Accès aux paramètres avancés
+  - Statistiques d'utilisation
 
-1. Double-cliquez sur `index.html`
-2. Si vous avez des erreurs, utilisez l'option 1 avec le serveur
+### Gestion des rôles
+- Seuls les administrateurs peuvent modifier les rôles des utilisateurs
+- Un utilisateur ne peut pas modifier son propre rôle
+- Les nouveaux utilisateurs reçoivent automatiquement le rôle "Membre"
+
+## 🚀 Installation
+
+1. Clonez le repository
+2. Ouvrez `index.html` dans votre navigateur
+3. Créez un compte ou connectez-vous
+4. Commencez votre collection !
+
+## 🛠️ Technologies utilisées
+
+- **Frontend** : HTML5, CSS3, JavaScript vanilla
+- **Backend** : Firebase (Authentication, Firestore)
+- **API** : PokéAPI pour les données des Pokémon
+- **Design** : CSS Grid, Flexbox, Animations CSS
+
+## 📱 Compatibilité
+
+- Navigateurs modernes (Chrome, Firefox, Safari, Edge)
+- Responsive design pour mobile et desktop
+- Fonctionne hors ligne (avec cache)
+
+## 🎯 Objectif
+
+Capturer tous les 1025 Pokémon pour compléter votre Pokédex ! Chaque Pokémon capturé est sauvegardé dans votre compte et synchronisé sur tous vos appareils.
+
+---
+
+*Développé avec ❤️ par Locktix*
 
 ## 🎯 Comment utiliser
 
@@ -49,20 +85,6 @@ Vos données sont automatiquement sauvegardées dans le localStorage de votre na
 - Vos progrès sont conservés même si vous fermez le navigateur
 - Les données sont locales à votre appareil
 - Vous pouvez reprendre où vous en étiez à tout moment
-
-## 📱 Compatibilité
-
-- ✅ Chrome, Firefox, Safari, Edge
-- ✅ Mobile (iOS, Android)
-- ✅ Tablette
-- ✅ Desktop
-
-## 🎯 Le Challenge
-
-Le Pokédex Challenge consiste à collectionner les 1025 Pokémon disponibles dans les jeux Pokémon. Avec un classeur de 4x4 par page :
-- **32 pages** au total
-- **16 Pokémon** par page
-- **1024 emplacements** + 1 Pokémon supplémentaire = **1025 Pokémon**
 
 ## 📁 Structure des fichiers
 
@@ -99,20 +121,6 @@ L'application affiche en temps réel :
 - **Nombre de Pokémon capturés**
 - **Pourcentage de complétion**
 - **Nombre de Pokémon restants**
-
-## 🛠️ Développement
-
-### Technologies utilisées
-- **HTML5** : Structure de la page
-- **CSS3** : Styles et animations
-- **JavaScript ES6+** : Logique de l'application
-- **Python** : Serveur local (optionnel)
-
-### Fonctionnalités techniques
-- **localStorage** : Sauvegarde des données
-- **Fetch API** : Chargement des données JSON
-- **CSS Grid** : Layout responsive
-- **Event Listeners** : Interactions utilisateur
 
 ## 🎉 Bonne chance !
 

@@ -1,7 +1,7 @@
 // Configuration
 const TOTAL_POKEMON = 1025;
-const POKEMON_PER_PAGE = 16; // 4x4 grille
-const TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
+let POKEMON_PER_PAGE = 16; // 4x4 grille
+let TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
 
 // Variables globales
 let currentPage = 1;
@@ -9,6 +9,11 @@ let capturedPokemon = new Set();
 let pokemonList = [];
 let currentFilter = 'all'; // 'all', 'captured', 'missing'
 let currentUser = null;
+
+// Variables pour le système de rôles
+let userRole = 'member'; // 'member', 'tester', 'admin'
+let allUsers = [];
+let isDarkMode = false;
 
 // Éléments DOM
 const pokemonGrid = document.getElementById('pokemon-grid');
@@ -110,12 +115,23 @@ function initAuth() {
             // Utilisateur connecté
             currentUser = user;
             console.log('Utilisateur connecté:', user.email);
+            
             showApp();
             await loadUserData();
+            await loadUserRole(); // Charger le rôle de l'utilisateur
+            
+            // Vérifier le mode maintenance après avoir chargé le rôle
+            const canAccess = await checkMaintenanceMode();
+            if (!canAccess) {
+                return; // Arrêter ici si en maintenance
+            }
+            
             setupEventListeners();
+            setupSettingsModal(); // Configurer le modal des paramètres
             displayCurrentPage();
             updateStats();
             setFilter(currentFilter);
+            applyDarkMode(); // Appliquer le mode sombre si activé
         } else {
             // Utilisateur déconnecté
             currentUser = null;
@@ -278,10 +294,14 @@ async function handleRegister() {
         const userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
         console.log('Compte créé avec succès:', userCredential.user.uid);
         
+        // Déterminer le rôle basé sur l'UID
+        const userRole = userCredential.user.uid === 'g9jMDMi1Z5XDcWrWAx66Ap56Tp02' ? 'admin' : 'member';
+        
         // Créer le profil utilisateur dans Firestore
         await setDoc(doc(window.db, 'users', userCredential.user.uid), {
             username: username,
             email: email,
+            role: userRole, // Rôle déterminé automatiquement
             createdAt: new Date(),
             capturedPokemon: []
         });
@@ -1071,4 +1091,611 @@ window.addEventListener('load', () => {
     setTimeout(() => {
         showNotification('Bienvenue dans le Pokédex Challenge ! 🎮', 'info');
     }, 1000);
-}); 
+});
+
+// ===== SYSTÈME DE RÔLES =====
+
+// Charger le rôle de l'utilisateur
+async function loadUserRole() {
+    if (!currentUser) return;
+    try {
+        const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const userDoc = await getDoc(doc(window.db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userRole = userData.role || 'member';
+            updateRoleDisplay();
+        }
+    } catch (error) {
+        userRole = 'member';
+    }
+}
+
+// Mettre à jour l'affichage du badge de rôle
+function updateRoleDisplay() {
+    const userRoleBadge = document.getElementById('user-role-badge');
+    if (userRoleBadge) {
+        const roleNames = {
+            'member': 'Membre',
+            'tester': 'Testeur',
+            'admin': 'Admin'
+        };
+        userRoleBadge.textContent = roleNames[userRole] || 'Membre';
+        userRoleBadge.className = 'role-badge ' + userRole;
+        userRoleBadge.style.display = 'inline-block';
+    }
+}
+
+// Vérifier les permissions
+function hasPermission(permission) {
+    const permissions = {
+        'member': ['view_pokemon', 'capture_pokemon'],
+        'tester': ['view_pokemon', 'capture_pokemon', 'test_features'],
+        'admin': ['view_pokemon', 'capture_pokemon', 'test_features', 'manage_users', 'manage_roles']
+    };
+    return permissions[userRole]?.includes(permission) || false;
+}
+
+// Gérer le modal des paramètres
+function setupSettingsModal() {
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeSettings = document.getElementById('close-settings');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'flex';
+            loadSettings();
+            // Afficher la section admin si l'utilisateur est admin
+            const adminSettings = document.getElementById('admin-settings');
+            if (adminSettings && userRole === 'admin') {
+                adminSettings.style.display = 'block';
+            }
+        });
+    }
+    
+    if (closeSettings) {
+        closeSettings.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+        });
+    }
+    
+    if (settingsModal) {
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.style.display = 'none';
+            }
+        });
+    }
+    
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', toggleDarkMode);
+    }
+    
+    // Event listeners pour les fonctionnalités admin
+    setupAdminEventListeners();
+}
+
+function loadSettings() {
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const maintenanceModeToggle = document.getElementById('maintenance-mode');
+    
+    if (darkModeToggle) {
+        isDarkMode = localStorage.getItem('darkMode') === 'true';
+        darkModeToggle.checked = isDarkMode;
+        applyDarkMode();
+    }
+    
+    if (maintenanceModeToggle) {
+        const isMaintenance = localStorage.getItem('maintenanceMode') === 'true';
+        maintenanceModeToggle.checked = isMaintenance;
+    }
+}
+
+// Basculer le mode sombre
+function toggleDarkMode() {
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    if (darkModeToggle) {
+        isDarkMode = darkModeToggle.checked;
+        localStorage.setItem('darkMode', isDarkMode);
+        applyDarkMode();
+        showNotification(`Mode sombre ${isDarkMode ? 'activé' : 'désactivé'}`, 'info');
+    }
+}
+
+// Appliquer le mode sombre
+function applyDarkMode() {
+    const body = document.body;
+    if (isDarkMode) {
+        body.classList.add('dark-mode');
+    } else {
+        body.classList.remove('dark-mode');
+    }
+}
+
+// ===== FONCTIONNALITÉS ADMIN =====
+
+// Configurer les event listeners pour les fonctionnalités admin
+function setupAdminEventListeners() {
+    // Statistiques globales
+    const viewGlobalStatsBtn = document.getElementById('view-global-stats');
+    if (viewGlobalStatsBtn) {
+        viewGlobalStatsBtn.addEventListener('click', showGlobalStats);
+    }
+    
+    // Gestion des utilisateurs
+    const manageUsersBtn = document.getElementById('manage-users');
+    if (manageUsersBtn) {
+        manageUsersBtn.addEventListener('click', showUsersManagement);
+    }
+    
+    // Réinitialiser progression
+    const resetUserProgressBtn = document.getElementById('reset-user-progress');
+    if (resetUserProgressBtn) {
+        resetUserProgressBtn.addEventListener('click', resetUserProgress);
+    }
+    
+    // Mode maintenance
+    const maintenanceModeToggle = document.getElementById('maintenance-mode');
+    if (maintenanceModeToggle) {
+        maintenanceModeToggle.addEventListener('change', toggleMaintenanceMode);
+    }
+    
+    // Export des données
+    const exportDataBtn = document.getElementById('export-data');
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', exportAllData);
+    }
+    
+    // Mettre à jour la taille de la grille
+    const updateGridSizeBtn = document.getElementById('update-grid-size');
+    if (updateGridSizeBtn) {
+        updateGridSizeBtn.addEventListener('click', updateGridSize);
+    }
+    
+    // Fermer les modals
+    const closeStatsBtn = document.getElementById('close-stats');
+    const closeUsersBtn = document.getElementById('close-users');
+    
+    if (closeStatsBtn) {
+        closeStatsBtn.addEventListener('click', () => {
+            document.getElementById('stats-modal').style.display = 'none';
+        });
+    }
+    
+    if (closeUsersBtn) {
+        closeUsersBtn.addEventListener('click', () => {
+            document.getElementById('users-modal').style.display = 'none';
+        });
+    }
+}
+
+// Afficher les statistiques globales
+async function showGlobalStats() {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    const statsModal = document.getElementById('stats-modal');
+    const statsContent = document.getElementById('stats-content');
+    
+    statsContent.innerHTML = '<p>Chargement des statistiques...</p>';
+    statsModal.style.display = 'flex';
+    
+    try {
+        const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const usersSnapshot = await getDocs(collection(window.db, 'users'));
+        
+        let totalUsers = 0;
+        let totalCaptured = 0;
+        let totalPokemon = 0;
+        let usersWithProgress = 0;
+        let averageCompletion = 0;
+        
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            totalUsers++;
+            
+            if (userData.capturedPokemon && userData.capturedPokemon.length > 0) {
+                usersWithProgress++;
+                totalCaptured += userData.capturedPokemon.length;
+                totalPokemon += TOTAL_POKEMON;
+            }
+        });
+        
+        averageCompletion = usersWithProgress > 0 ? (totalCaptured / totalPokemon * 100).toFixed(1) : 0;
+        
+        statsContent.innerHTML = `
+            <div class="stats-grid">
+                <div class="global-stat-card">
+                    <div class="global-stat-number">${totalUsers}</div>
+                    <div class="global-stat-label">Utilisateurs totaux</div>
+                </div>
+                <div class="global-stat-card">
+                    <div class="global-stat-number">${usersWithProgress}</div>
+                    <div class="global-stat-label">Utilisateurs actifs</div>
+                </div>
+                <div class="global-stat-card">
+                    <div class="global-stat-number">${totalCaptured}</div>
+                    <div class="global-stat-label">Pokémon capturés</div>
+                </div>
+                <div class="global-stat-card">
+                    <div class="global-stat-number">${averageCompletion}%</div>
+                    <div class="global-stat-label">Complétion moyenne</div>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Erreur lors du chargement des statistiques:', error);
+        statsContent.innerHTML = '<p>Erreur lors du chargement des statistiques</p>';
+    }
+}
+
+// Afficher la gestion des utilisateurs
+async function showUsersManagement() {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    const usersModal = document.getElementById('users-modal');
+    const usersContent = document.getElementById('users-content');
+    
+    usersContent.innerHTML = '<p>Chargement des utilisateurs...</p>';
+    usersModal.style.display = 'flex';
+    
+    try {
+        const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const usersSnapshot = await getDocs(collection(window.db, 'users'));
+        
+        let usersTable = `
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Pokémon capturés</th>
+                        <th>Complétion</th>
+                        <th>Dernière activité</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            const capturedCount = userData.capturedPokemon ? userData.capturedPokemon.length : 0;
+            const completion = ((capturedCount / TOTAL_POKEMON) * 100).toFixed(1);
+            const lastActivity = userData.lastSaved ? new Date(userData.lastSaved.toDate()).toLocaleDateString('fr-FR') : 'Jamais';
+            const currentRole = userData.role || 'member';
+            
+            usersTable += `
+                <tr data-uid="${doc.id}">
+                    <td>${userData.username || 'N/A'}</td>
+                    <td>${userData.email || 'N/A'}</td>
+                    <td>
+                        <span class="role-badge ${currentRole}">${currentRole}</span>
+                        <div class="role-selector-inline">
+                            <select class="role-select" data-uid="${doc.id}" data-current-role="${currentRole}">
+                                <option value="member" ${currentRole === 'member' ? 'selected' : ''}>Membre</option>
+                                <option value="tester" ${currentRole === 'tester' ? 'selected' : ''}>Testeur</option>
+                                <option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                            <button class="update-role-btn" data-uid="${doc.id}" style="display: none;">✓</button>
+                        </div>
+                    </td>
+                    <td>${capturedCount}</td>
+                    <td>${completion}%</td>
+                    <td>${lastActivity}</td>
+                    <td>
+                        <button class="admin-btn danger small" onclick="resetUserProgressById('${doc.id}')" title="Réinitialiser progression">
+                            🔄
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        usersTable += '</tbody></table>';
+        usersContent.innerHTML = usersTable;
+        
+        // Ajouter les event listeners pour les sélecteurs de rôle
+        setupRoleSelectors();
+        
+    } catch (error) {
+        console.error('Erreur lors du chargement des utilisateurs:', error);
+        usersContent.innerHTML = '<p>Erreur lors du chargement des utilisateurs</p>';
+    }
+}
+
+// Réinitialiser la progression d'un utilisateur
+async function resetUserProgress() {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    const uid = document.getElementById('reset-user-uid').value.trim();
+    if (!uid) {
+        showNotification('Veuillez entrer un UID utilisateur', 'error');
+        return;
+    }
+    
+    if (!confirm(`Êtes-vous sûr de vouloir réinitialiser la progression de l'utilisateur ${uid} ?`)) {
+        return;
+    }
+    
+    try {
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        await updateDoc(doc(window.db, 'users', uid), {
+            capturedPokemon: [],
+            lastSaved: new Date()
+        });
+        
+        showNotification('Progression réinitialisée avec succès', 'success');
+        document.getElementById('reset-user-uid').value = '';
+    } catch (error) {
+        console.error('Erreur lors de la réinitialisation:', error);
+        showNotification('Erreur lors de la réinitialisation', 'error');
+    }
+}
+
+// Basculer le mode maintenance
+async function toggleMaintenanceMode() {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    const maintenanceModeToggle = document.getElementById('maintenance-mode');
+    const isMaintenance = maintenanceModeToggle.checked;
+    
+    try {
+        // Sauvegarder l'état de maintenance dans Firestore pour tous les utilisateurs
+        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        await setDoc(doc(window.db, 'app', 'maintenance'), {
+            isMaintenance: isMaintenance,
+            updatedBy: currentUser.uid,
+            updatedAt: new Date()
+        });
+        
+        localStorage.setItem('maintenanceMode', isMaintenance);
+        showNotification(`Mode maintenance ${isMaintenance ? 'activé' : 'désactivé'}`, 'info');
+        
+        // Si on désactive le mode maintenance, recharger la page pour tous
+        if (!isMaintenance) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+    } catch (error) {
+        console.error('Erreur lors du changement de mode maintenance:', error);
+        showNotification('Erreur lors du changement de mode maintenance', 'error');
+    }
+}
+
+// Exporter toutes les données
+async function exportAllData() {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    try {
+        const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const usersSnapshot = await getDocs(collection(window.db, 'users'));
+        
+        const exportData = {
+            exportDate: new Date().toISOString(),
+            totalUsers: 0,
+            users: []
+        };
+        
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            exportData.totalUsers++;
+            exportData.users.push({
+                uid: doc.id,
+                ...userData,
+                lastSaved: userData.lastSaved ? userData.lastSaved.toDate().toISOString() : null,
+                createdAt: userData.createdAt ? userData.createdAt.toDate().toISOString() : null
+            });
+        });
+        
+        // Créer et télécharger le fichier JSON
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pokemon-challenge-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showNotification('Données exportées avec succès', 'success');
+    } catch (error) {
+        console.error('Erreur lors de l\'export:', error);
+        showNotification('Erreur lors de l\'export', 'error');
+    }
+}
+
+// Vérifier le mode maintenance
+async function checkMaintenanceMode() {
+    try {
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const maintenanceDoc = await getDoc(doc(window.db, 'app', 'maintenance'));
+        
+        if (maintenanceDoc.exists()) {
+            const maintenanceData = maintenanceDoc.data();
+            if (maintenanceData.isMaintenance && userRole !== 'admin') {
+                // Bloquer l'accès pour les non-admins
+                showMaintenanceScreen();
+                return false;
+            }
+        }
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de la vérification du mode maintenance:', error);
+        return true; // En cas d'erreur, on laisse passer
+    }
+}
+
+// Afficher l'écran de maintenance
+function showMaintenanceScreen() {
+    // Masquer l'app et l'auth
+    document.getElementById('app-container').style.display = 'none';
+    document.getElementById('auth-container').style.display = 'none';
+    
+    // Créer l'écran de maintenance
+    const maintenanceScreen = document.createElement('div');
+    maintenanceScreen.id = 'maintenance-screen';
+    maintenanceScreen.innerHTML = `
+        <div class="maintenance-container">
+            <div class="maintenance-content">
+                <h1>🔧 Maintenance en cours</h1>
+                <p>L'application est actuellement en maintenance.</p>
+                <p>Nous serons de retour bientôt !</p>
+                <div class="maintenance-info">
+                    <p>🕐 Dernière mise à jour : ${new Date().toLocaleString('fr-FR')}</p>
+                </div>
+                <button onclick="window.location.reload()" class="maintenance-btn">
+                    🔄 Actualiser
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(maintenanceScreen);
+}
+
+// Configurer les sélecteurs de rôle
+function setupRoleSelectors() {
+    const roleSelects = document.querySelectorAll('.role-select');
+    
+    roleSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const uid = this.dataset.uid;
+            const newRole = this.value;
+            const currentRole = this.dataset.currentRole;
+            const updateBtn = document.querySelector(`.update-role-btn[data-uid="${uid}"]`);
+            
+            if (newRole !== currentRole) {
+                updateBtn.style.display = 'inline-block';
+            } else {
+                updateBtn.style.display = 'none';
+            }
+        });
+    });
+    
+    // Event listeners pour les boutons de mise à jour
+    const updateBtns = document.querySelectorAll('.update-role-btn');
+    updateBtns.forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const uid = this.dataset.uid;
+            const select = document.querySelector(`.role-select[data-uid="${uid}"]`);
+            const newRole = select.value;
+            
+            await updateUserRole(uid, newRole);
+        });
+    });
+}
+
+// Mettre à jour le rôle d'un utilisateur
+async function updateUserRole(uid, newRole) {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    try {
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        await updateDoc(doc(window.db, 'users', uid), {
+            role: newRole
+        });
+        
+        // Mettre à jour l'affichage
+        const select = document.querySelector(`.role-select[data-uid="${uid}"]`);
+        const badge = select.closest('td').querySelector('.role-badge');
+        const updateBtn = document.querySelector(`.update-role-btn[data-uid="${uid}"]`);
+        
+        select.dataset.currentRole = newRole;
+        badge.textContent = newRole;
+        badge.className = `role-badge ${newRole}`;
+        updateBtn.style.display = 'none';
+        
+        showNotification(`Rôle mis à jour : ${newRole}`, 'success');
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du rôle:', error);
+        showNotification('Erreur lors de la mise à jour du rôle', 'error');
+    }
+}
+
+// Réinitialiser la progression d'un utilisateur par ID
+async function resetUserProgressById(uid) {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    if (!confirm(`Êtes-vous sûr de vouloir réinitialiser la progression de cet utilisateur ?`)) {
+        return;
+    }
+    
+    try {
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        await updateDoc(doc(window.db, 'users', uid), {
+            capturedPokemon: [],
+            lastSaved: new Date()
+        });
+        
+        showNotification('Progression réinitialisée avec succès', 'success');
+        
+        // Recharger le tableau pour mettre à jour les données
+        showUsersManagement();
+    } catch (error) {
+        console.error('Erreur lors de la réinitialisation:', error);
+        showNotification('Erreur lors de la réinitialisation', 'error');
+    }
+}
+
+// Mettre à jour la taille de la grille
+function updateGridSize() {
+    if (!hasPermission('manage_users')) {
+        showNotification('Accès refusé', 'error');
+        return;
+    }
+    
+    const newSize = parseInt(document.getElementById('pokemon-per-page').value);
+    if (isNaN(newSize) || newSize < 4 || newSize > 50) {
+        showNotification('Veuillez entrer un nombre entre 4 et 50', 'error');
+        return;
+    }
+    
+    // Mettre à jour les variables globales
+    POKEMON_PER_PAGE = newSize;
+    TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
+    
+    // Mettre à jour l'affichage
+    currentPage = 1;
+    displayCurrentPage();
+    updateStats();
+    
+    // Mettre à jour le texte de pagination
+    const pageInfo = document.querySelector('.page-info');
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${currentPage} / ${TOTAL_PAGES}`;
+    }
+    
+    showNotification(`Grille mise à jour : ${newSize} Pokémon par page`, 'success');
+}
+
+// Rendre les fonctions disponibles globalement
+window.changeUserRole = changeUserRole;
+window.resetUserProgressById = resetUserProgressById; 
