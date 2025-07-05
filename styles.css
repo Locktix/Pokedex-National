@@ -1059,4 +1059,20 @@ footer {
     text-align: center;
     font-weight: 500;
     letter-spacing: 0.5px;
+}
+
+.footer-minimal {
+    width: 100%;
+    background: transparent;
+    color: #fff;
+    text-align: center;
+    font-size: 0.95rem;
+    opacity: 0.6;
+    padding: 18px 0 8px 0;
+    letter-spacing: 0.5px;
+    font-family: 'Poppins', sans-serif;
+    border: none;
+    box-shadow: none;
+    margin-top: 30px;
+    user-select: none;
 } 
