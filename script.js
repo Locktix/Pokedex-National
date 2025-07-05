@@ -8,6 +8,7 @@ let currentPage = 1;
 let capturedPokemon = new Set();
 let pokemonList = [];
 let currentFilter = 'all'; // 'all', 'captured', 'missing'
+let currentUser = null;
 
 // Éléments DOM
 const pokemonGrid = document.getElementById('pokemon-grid');
@@ -31,23 +32,119 @@ async function init() {
         const response = await fetch('listes.json');
         pokemonList = await response.json();
         
-        // Charger les données sauvegardées
-        loadSavedData();
-        
-        // Afficher la première page
-        displayCurrentPage();
-        updateStats();
-        
-        // Appliquer le filtre sauvegardé
-        setFilter(currentFilter);
-        
-        // Ajouter les event listeners
-        setupEventListeners();
+        // Initialiser l'authentification Firebase
+        initAuth();
         
         console.log(`Application initialisée avec ${pokemonList.length} Pokémon`);
     } catch (error) {
         console.error('Erreur lors du chargement des Pokémon:', error);
         pokemonGrid.innerHTML = '<p style="text-align: center; color: red;">Erreur lors du chargement des données</p>';
+    }
+}
+
+// Initialiser l'authentification Firebase
+function initAuth() {
+    // Écouter les changements d'état d'authentification
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            // Utilisateur connecté
+            currentUser = user;
+            showApp();
+            await loadUserData();
+            setupEventListeners();
+            displayCurrentPage();
+            updateStats();
+            setFilter(currentFilter);
+        } else {
+            // Utilisateur déconnecté
+            currentUser = null;
+            showAuth();
+        }
+    });
+    
+    // Configurer les event listeners d'authentification
+    setupAuthEventListeners();
+}
+
+// Afficher l'interface d'authentification
+function showAuth() {
+    document.getElementById('auth-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+}
+
+// Afficher l'application
+function showApp() {
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
+    document.getElementById('user-email').textContent = currentUser.email;
+}
+
+// Configurer les event listeners d'authentification
+function setupAuthEventListeners() {
+    // Boutons de basculement entre connexion et inscription
+    document.getElementById('show-register').addEventListener('click', () => {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'flex';
+    });
+    
+    document.getElementById('show-login').addEventListener('click', () => {
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('login-form').style.display = 'flex';
+    });
+    
+    // Connexion
+    document.getElementById('login-btn').addEventListener('click', handleLogin);
+    
+    // Inscription
+    document.getElementById('register-btn').addEventListener('click', handleRegister);
+    
+    // Déconnexion
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+}
+
+// Gérer la connexion
+async function handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showNotification('Connexion réussie ! 🎉', 'success');
+    } catch (error) {
+        console.error('Erreur de connexion:', error);
+        showNotification('Erreur de connexion: ' + error.message, 'error');
+    }
+}
+
+// Gérer l'inscription
+async function handleRegister() {
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Créer le profil utilisateur dans Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+            username: username,
+            email: email,
+            createdAt: new Date(),
+            capturedPokemon: []
+        });
+        showNotification('Compte créé avec succès ! 🎉', 'success');
+    } catch (error) {
+        console.error('Erreur d\'inscription:', error);
+        showNotification('Erreur d\'inscription: ' + error.message, 'error');
+    }
+}
+
+// Gérer la déconnexion
+async function handleLogout() {
+    try {
+        await signOut(auth);
+        showNotification('Déconnexion réussie', 'info');
+    } catch (error) {
+        console.error('Erreur de déconnexion:', error);
     }
 }
 
@@ -215,8 +312,8 @@ function togglePokemonCapture(pokemonNumber) {
     updatePokemonCard(pokemonNumber);
     updateStats();
     
-    // Sauvegarder les données
-    saveData();
+    // Sauvegarder les données utilisateur
+    saveUserData();
 }
 
 // Mettre à jour une carte Pokémon spécifique sans recharger les images
@@ -290,8 +387,49 @@ function updateNavigationButtons() {
     }
 }
 
-// Sauvegarder les données dans le localStorage
-function saveData() {
+// Charger les données utilisateur depuis Firebase
+async function loadUserData() {
+    if (!currentUser) return;
+    
+    try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            capturedPokemon = new Set(userData.capturedPokemon || []);
+            currentFilter = userData.currentFilter || 'all';
+            console.log(`Données utilisateur chargées: ${capturedPokemon.size} Pokémon capturés`);
+        } else {
+            // Nouvel utilisateur, initialiser avec des données vides
+            capturedPokemon = new Set();
+            currentFilter = 'all';
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        capturedPokemon = new Set();
+        currentFilter = 'all';
+    }
+}
+
+// Sauvegarder les données utilisateur dans Firebase
+async function saveUserData() {
+    if (!currentUser) return;
+    
+    try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+            capturedPokemon: Array.from(capturedPokemon),
+            currentFilter: currentFilter,
+            lastSaved: new Date()
+        });
+        console.log('Données utilisateur sauvegardées dans Firebase');
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde dans Firebase:', error);
+        // Fallback vers localStorage en cas d'erreur
+        saveToLocalStorage();
+    }
+}
+
+// Fallback vers localStorage
+function saveToLocalStorage() {
     const data = {
         capturedPokemon: Array.from(capturedPokemon),
         lastSaved: new Date().toISOString()
@@ -299,30 +437,9 @@ function saveData() {
     
     try {
         localStorage.setItem('pokemonChallenge', JSON.stringify(data));
-        console.log('Données sauvegardées');
+        console.log('Données sauvegardées dans localStorage (fallback)');
     } catch (error) {
-        console.error('Erreur lors de la sauvegarde:', error);
-    }
-}
-
-// Charger les données sauvegardées
-function loadSavedData() {
-    try {
-        const savedData = localStorage.getItem('pokemonChallenge');
-        if (savedData) {
-            const data = JSON.parse(savedData);
-            capturedPokemon = new Set(data.capturedPokemon || []);
-            console.log(`Données chargées: ${capturedPokemon.size} Pokémon capturés`);
-        }
-        
-        // Charger la préférence de filtre
-        const savedFilter = localStorage.getItem('pokemonFilter');
-        if (savedFilter && ['all', 'captured', 'missing'].includes(savedFilter)) {
-            currentFilter = savedFilter;
-        }
-    } catch (error) {
-        console.error('Erreur lors du chargement des données sauvegardées:', error);
-        capturedPokemon = new Set();
+        console.error('Erreur lors de la sauvegarde dans localStorage:', error);
     }
 }
 
@@ -407,7 +524,7 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('DOMContentLoaded', init);
 
 // Sauvegarder automatiquement toutes les 30 secondes
-setInterval(saveData, 30000);
+setInterval(saveUserData, 30000);
 
 // Fonctions de filtrage
 function setFilter(filter) {
@@ -425,7 +542,7 @@ function setFilter(filter) {
     updateStats();
     
     // Sauvegarder la préférence de filtre
-    localStorage.setItem('pokemonFilter', filter);
+    saveUserData();
 }
 
 function applyCurrentFilter() {

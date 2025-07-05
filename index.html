@@ -8,8 +8,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
+    <!-- Interface d'authentification -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-card">
+            <h2>🎮 Pokédex Challenge</h2>
+            <p class="auth-subtitle">Connectez-vous pour sauvegarder votre progression</p>
+            
+            <div id="login-form" class="auth-form">
+                <input type="email" id="login-email" placeholder="Email" class="auth-input">
+                <input type="password" id="login-password" placeholder="Mot de passe" class="auth-input">
+                <button id="login-btn" class="auth-btn primary">Se connecter</button>
+                <button id="show-register" class="auth-btn secondary">Créer un compte</button>
+            </div>
+            
+            <div id="register-form" class="auth-form" style="display: none;">
+                <input type="text" id="register-username" placeholder="Nom d'utilisateur" class="auth-input">
+                <input type="email" id="register-email" placeholder="Email" class="auth-input">
+                <input type="password" id="register-password" placeholder="Mot de passe" class="auth-input">
+                <button id="register-btn" class="auth-btn primary">Créer un compte</button>
+                <button id="show-login" class="auth-btn secondary">Déjà un compte ?</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="container" style="display: none;">
         <header>
+            <div class="user-info">
+                <span id="user-email"></span>
+                <button id="logout-btn" class="logout-btn">Déconnexion</button>
+            </div>
             <h1>🎮 Pokédex Challenge</h1>
             <div class="stats">
                 <div class="stat-item">
@@ -77,6 +104,36 @@
         </footer>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3h1yaax-uNxAN0P83ZGecQbWYtzvsyA8",
+            authDomain: "pokemon-challenge-e865d.firebaseapp.com",
+            projectId: "pokemon-challenge-e865d",
+            storageBucket: "pokemon-challenge-e865d.firebasestorage.app",
+            messagingSenderId: "954666705688",
+            appId: "1:954666705688:web:d0f539c5494e35c34af46d",
+            measurementId: "G-JML8B9SHK7"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Make Firebase available globally
+        window.auth = auth;
+        window.db = db;
+        window.analytics = analytics;
+    </script>
     <script src="script.js"></script>
 </body>
 </html> 
