@@ -96,7 +96,8 @@ function showApp() {
     if (authContainer && appContainer && userEmail) {
         authContainer.style.display = 'none';
         appContainer.style.display = 'block';
-        userEmail.textContent = currentUser.email;
+        // Charger le pseudo depuis Firestore
+        loadAndDisplayUsername();
         console.log('Interface de l\'application affichée');
     } else {
         console.error('Éléments DOM manquants:', {
@@ -109,6 +110,24 @@ function showApp() {
     // Nettoyer l'URL si nécessaire
     if (window.history && window.history.replaceState) {
         window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
+// Nouvelle fonction pour charger et afficher le pseudo
+async function loadAndDisplayUsername() {
+    const userEmail = document.getElementById('user-email');
+    if (!currentUser || !userEmail) return;
+    try {
+        const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const userDoc = await getDoc(doc(window.db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userEmail.textContent = userData.username || currentUser.email;
+        } else {
+            userEmail.textContent = currentUser.email;
+        }
+    } catch (e) {
+        userEmail.textContent = currentUser.email;
     }
 }
 
@@ -551,8 +570,6 @@ function saveToLocalStorage() {
         console.error('Erreur lors de la sauvegarde dans localStorage:', error);
     }
 }
-
-
 
 // Afficher une notification
 function showNotification(message, type = 'info') {
