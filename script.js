@@ -17,6 +17,10 @@ const remainingElement = document.getElementById('remaining');
 const prevPageBtn = document.getElementById('prev-page');
 const nextPageBtn = document.getElementById('next-page');
 const resetBtn = document.getElementById('reset-collection');
+const searchInput = document.getElementById('search-input');
+const searchBtn = document.getElementById('search-btn');
+const clearSearchBtn = document.getElementById('clear-search');
+const searchResults = document.getElementById('search-results');
 
 // Initialisation
 async function init() {
@@ -62,6 +66,26 @@ function setupEventListeners() {
     resetBtn.addEventListener('click', () => {
         if (confirm('Êtes-vous sûr de vouloir réinitialiser votre collection ? Cette action ne peut pas être annulée.')) {
             resetCollection();
+        }
+    });
+    
+    // Event listeners pour la recherche
+    searchInput.addEventListener('input', handleSearch);
+    searchBtn.addEventListener('click', () => handleSearch());
+    clearSearchBtn.addEventListener('click', clearSearch);
+    
+    // Fermer les résultats de recherche en cliquant ailleurs
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            hideSearchResults();
+        }
+    });
+    
+    // Recherche avec Entrée
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch();
         }
     });
 }
@@ -292,6 +316,88 @@ document.addEventListener('DOMContentLoaded', init);
 
 // Sauvegarder automatiquement toutes les 30 secondes
 setInterval(saveData, 30000);
+
+// Fonctions de recherche
+function handleSearch() {
+    const query = searchInput.value.trim().toLowerCase();
+    
+    if (query.length === 0) {
+        clearSearch();
+        return;
+    }
+    
+    const results = pokemonList
+        .map((name, index) => ({
+            number: index + 1,
+            name: name,
+            isCaptured: capturedPokemon.has(index + 1)
+        }))
+        .filter(pokemon => 
+            pokemon.name.toLowerCase().includes(query) ||
+            pokemon.number.toString().includes(query)
+        )
+        .slice(0, 10); // Limiter à 10 résultats
+    
+    displaySearchResults(results);
+}
+
+function displaySearchResults(results) {
+    if (results.length === 0) {
+        searchResults.innerHTML = '<div class="search-result-item">Aucun Pokémon trouvé</div>';
+        showSearchResults();
+        return;
+    }
+    
+    searchResults.innerHTML = results.map(pokemon => `
+        <div class="search-result-item" onclick="goToPokemon(${pokemon.number})">
+            <div class="search-result-number">#${pokemon.number.toString().padStart(3, '0')}</div>
+            <div class="search-result-name">${pokemon.name}</div>
+            ${pokemon.isCaptured ? '<div class="search-result-captured">✓</div>' : ''}
+        </div>
+    `).join('');
+    
+    showSearchResults();
+}
+
+function showSearchResults() {
+    searchResults.style.display = 'block';
+    clearSearchBtn.style.display = 'flex';
+}
+
+function hideSearchResults() {
+    searchResults.style.display = 'none';
+}
+
+function clearSearch() {
+    searchInput.value = '';
+    hideSearchResults();
+    clearSearchBtn.style.display = 'none';
+    searchInput.focus();
+}
+
+function goToPokemon(pokemonNumber) {
+    // Calculer la page où se trouve ce Pokémon
+    const targetPage = Math.ceil(pokemonNumber / POKEMON_PER_PAGE);
+    
+    // Aller à la page
+    currentPage = targetPage;
+    displayCurrentPage();
+    updateStats();
+    
+    // Fermer la recherche
+    clearSearch();
+    
+    // Mettre en surbrillance le Pokémon (optionnel)
+    setTimeout(() => {
+        const pokemonCard = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
+        if (pokemonCard) {
+            pokemonCard.style.animation = 'capturedPulse 1s ease';
+            setTimeout(() => {
+                pokemonCard.style.animation = '';
+            }, 1000);
+        }
+    }, 100);
+}
 
 // Afficher un message de bienvenue
 window.addEventListener('load', () => {

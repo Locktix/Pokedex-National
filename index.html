@@ -28,6 +28,15 @@
         </header>
 
         <div class="controls">
+            <div class="search-section">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Rechercher un Pokémon..." class="search-input">
+                    <button id="search-btn" class="search-btn">🔍</button>
+                    <button id="clear-search" class="clear-search-btn" style="display: none;">✕</button>
+                </div>
+                <div id="search-results" class="search-results" style="display: none;"></div>
+            </div>
+            
             <div class="page-navigation">
                 <button id="prev-page" class="nav-btn">← Précédent</button>
                 <span class="page-info">Page <span id="current-page">1</span> sur 64</span>
