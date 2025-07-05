@@ -402,29 +402,41 @@ function setupEventListeners() {
 
 // Afficher la page courante
 function displayCurrentPage() {
+    // Si filtre capturé, afficher tous les capturés sur une seule page
+    if (currentFilter === 'captured') {
+        currentPageElement.textContent = 1;
+        pokemonGrid.innerHTML = '';
+        const capturedList = Array.from(capturedPokemon).sort((a, b) => a - b);
+        capturedList.forEach(pokemonNumber => {
+            const pokemonName = pokemonList[pokemonNumber - 1];
+            const card = createPokemonCard(pokemonNumber, pokemonName, true);
+            // Afficher la page d'origine
+            const page = Math.ceil(pokemonNumber / POKEMON_PER_PAGE);
+            const nameElem = card.querySelector('.pokemon-name');
+            if (nameElem) {
+                const pageInfo = document.createElement('div');
+                pageInfo.className = 'pokemon-page-info';
+                pageInfo.textContent = `Page ${page}`;
+                nameElem.after(pageInfo);
+            }
+            pokemonGrid.appendChild(card);
+        });
+        updateNavigationButtons(true); // désactive les boutons
+        return;
+    }
+    // Sinon, comportement normal
     currentPageElement.textContent = currentPage;
-    
-    // Calculer les indices de début et fin pour cette page
     const startIndex = (currentPage - 1) * POKEMON_PER_PAGE;
     const endIndex = Math.min(startIndex + POKEMON_PER_PAGE, TOTAL_POKEMON);
-    
-    // Vider la grille
     pokemonGrid.innerHTML = '';
-    
-    // Créer les cartes Pokémon pour cette page
     for (let i = startIndex; i < endIndex; i++) {
         const pokemonNumber = i + 1;
         const pokemonName = pokemonList[i];
         const isCaptured = capturedPokemon.has(pokemonNumber);
-        
         const pokemonCard = createPokemonCard(pokemonNumber, pokemonName, isCaptured);
         pokemonGrid.appendChild(pokemonCard);
     }
-    
-    // Appliquer le filtre actuel
     applyCurrentFilter();
-    
-    // Mettre à jour l'état des boutons de navigation
     updateNavigationButtons();
 }
 
@@ -614,26 +626,12 @@ function updateStats() {
 }
 
 // Mettre à jour l'état des boutons de navigation
-function updateNavigationButtons() {
-    prevPageBtn.disabled = currentPage <= 1;
-    nextPageBtn.disabled = currentPage >= TOTAL_PAGES;
-    
-    // Ajouter des styles visuels pour les boutons désactivés
-    if (prevPageBtn.disabled) {
-        prevPageBtn.style.opacity = '0.5';
-        prevPageBtn.style.cursor = 'not-allowed';
-    } else {
-        prevPageBtn.style.opacity = '1';
-        prevPageBtn.style.cursor = 'pointer';
-    }
-    
-    if (nextPageBtn.disabled) {
-        nextPageBtn.style.opacity = '0.5';
-        nextPageBtn.style.cursor = 'not-allowed';
-    } else {
-        nextPageBtn.style.opacity = '1';
-        nextPageBtn.style.cursor = 'pointer';
-    }
+function updateNavigationButtons(disable) {
+    prevPageBtn.disabled = !!disable;
+    nextPageBtn.disabled = !!disable;
+    document.getElementById('first-page').disabled = !!disable;
+    document.getElementById('goto-page-input').disabled = !!disable;
+    document.getElementById('goto-page-btn').disabled = !!disable;
 }
 
 // Charger les données utilisateur depuis Firebase
@@ -807,18 +805,12 @@ setInterval(saveUserData, 30000);
 // Fonctions de filtrage
 function setFilter(filter) {
     currentFilter = filter;
-    
     // Mettre à jour l'état actif des boutons
     showAllBtn.classList.toggle('active', filter === 'all');
     showCapturedBtn.classList.toggle('active', filter === 'captured');
     showMissingBtn.classList.toggle('active', filter === 'missing');
-    
-    // Appliquer le filtre
-    applyCurrentFilter();
-    
-    // Mettre à jour les statistiques selon le filtre
+    displayCurrentPage();
     updateStats();
-    
     // Sauvegarder la préférence de filtre
     saveUserData();
 }
