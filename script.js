@@ -463,22 +463,29 @@ async function loadPokemonImage(card, pokemonNumber) {
             // Ajouter un overlay semi-transparent pour améliorer la lisibilité du texte
             card.style.position = 'relative';
             
-            // Créer un overlay si il n'existe pas déjà
-            if (!card.querySelector('.card-overlay')) {
-                const overlay = document.createElement('div');
+            // CRÉER TOUJOURS L'OVERLAY (même s'il existe déjà)
+            let overlay = card.querySelector('.card-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
                 overlay.className = 'card-overlay';
-                overlay.style.cssText = `
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%);
-                    pointer-events: none;
-                    z-index: 1;
-                `;
                 card.appendChild(overlay);
             }
+            
+            // Mettre à jour l'overlay avec la bonne couleur selon l'état de capture
+            const isCaptured = capturedPokemon.has(pokemonNumber);
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: ${isCaptured 
+                    ? 'linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.1) 50%, rgba(78, 205, 196, 0.4) 100%)'
+                    : 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%)'
+                };
+                pointer-events: none;
+                z-index: 1;
+            `;
             
             // S'assurer que le texte reste au-dessus de l'overlay
             const numberElement = card.querySelector('.pokemon-number');
@@ -491,6 +498,29 @@ async function loadPokemonImage(card, pokemonNumber) {
             // En cas d'erreur, utiliser une image par défaut ou un motif
             console.warn(`Impossible de charger l'image pour le Pokémon #${pokemonNumber}`);
             card.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            
+            // Créer quand même l'overlay même en cas d'erreur
+            card.style.position = 'relative';
+            let overlay = card.querySelector('.card-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'card-overlay';
+                const isCaptured = capturedPokemon.has(pokemonNumber);
+                overlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: ${isCaptured 
+                        ? 'linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.1) 50%, rgba(78, 205, 196, 0.4) 100%)'
+                        : 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%)'
+                    };
+                    pointer-events: none;
+                    z-index: 1;
+                `;
+                card.appendChild(overlay);
+            }
         };
         
         // Démarrer le chargement
