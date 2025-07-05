@@ -26,16 +26,60 @@ const showAllBtn = document.getElementById('show-all');
 const showCapturedBtn = document.getElementById('show-captured');
 const showMissingBtn = document.getElementById('show-missing');
 
+// Fonction pour récupérer tous les noms de Pokémon en français depuis PokéAPI
+async function fetchFrenchPokemonNames() {
+    console.log('[PokéAPI] Début du chargement de la liste des espèces...');
+    const speciesListResp = await fetch('https://pokeapi.co/api/v2/pokemon-species?limit=1025');
+    const speciesList = await speciesListResp.json();
+    const urls = speciesList.results.map(s => s.url);
+    console.log(`[PokéAPI] ${urls.length} URLs d'espèces à traiter.`);
+
+    // Pour aller plus vite, on limite à 50 requêtes en parallèle
+    const chunkSize = 50;
+    let names = [];
+    for (let i = 0; i < urls.length; i += chunkSize) {
+        const chunk = urls.slice(i, i + chunkSize);
+        console.log(`[PokéAPI] Traitement du chunk ${i/chunkSize+1} (${i+1} à ${i+chunk.length})...`);
+        const chunkResults = await Promise.all(chunk.map(async (url, idx) => {
+            try {
+                const resp = await fetch(url);
+                const data = await resp.json();
+                const frName = data.names.find(n => n.language.name === 'fr');
+                if (frName) {
+                    console.log(`[PokéAPI] #${data.id} : ${frName.name}`);
+                } else {
+                    console.warn(`[PokéAPI] #${data.id} : nom FR non trouvé, fallback sur ${data.name}`);
+                }
+                return frName ? frName.name : data.name;
+            } catch (e) {
+                console.error(`[PokéAPI] Erreur sur ${url} :`, e);
+                return null;
+            }
+        }));
+        names = names.concat(chunkResults.filter(Boolean));
+        console.log(`[PokéAPI] ${names.length} noms collectés jusqu'ici.`);
+    }
+    console.log(`[PokéAPI] Chargement terminé. Total : ${names.length} noms.`);
+    return names;
+}
+
 // Initialisation
 async function init() {
     try {
-        const response = await fetch('listes.json');
-        pokemonList = await response.json();
-        
+        let pokemonListCache = localStorage.getItem('pokemonListFR');
+        if (pokemonListCache) {
+            pokemonList = JSON.parse(pokemonListCache);
+            console.log('[PokéAPI] Liste des Pokémon FR chargée depuis le cache localStorage');
+        } else {
+            pokemonGrid.innerHTML = '<p style="text-align: center; color: #667eea;">Chargement de la liste des Pokémon en français...<br>Ce chargement peut prendre 10 à 30 secondes la première fois.</p>';
+            console.log('[PokéAPI] Aucun cache trouvé, chargement depuis PokéAPI...');
+            pokemonList = await fetchFrenchPokemonNames();
+            localStorage.setItem('pokemonListFR', JSON.stringify(pokemonList));
+            console.log('[PokéAPI] Liste des Pokémon FR chargée depuis PokéAPI et mise en cache');
+        }
         // Initialiser l'authentification Firebase
         initAuth();
-        
-        console.log(`Application initialisée avec ${pokemonList.length} Pokémon`);
+        console.log(`[PokéAPI] Application initialisée avec ${pokemonList.length} Pokémon (noms FR dynamiques)`);
     } catch (error) {
         console.error('Erreur lors du chargement des Pokémon:', error);
         pokemonGrid.innerHTML = '<p style="text-align: center; color: red;">Erreur lors du chargement des données</p>';
@@ -524,7 +568,7 @@ async function loadUserData() {
             const userData = userDoc.data();
             capturedPokemon = new Set(userData.capturedPokemon || []);
             currentFilter = userData.currentFilter || 'all';
-            console.log(`Données utilisateur chargées: ${capturedPokemon.size} Pokémon capturés`);
+            console.log(`[PokéAPI] Données utilisateur chargées: ${capturedPokemon.size} Pokémon capturés`);
         } else {
             // Nouvel utilisateur, initialiser avec des données vides
             capturedPokemon = new Set();
@@ -548,7 +592,7 @@ async function saveUserData() {
             currentFilter: currentFilter,
             lastSaved: new Date()
         });
-        console.log('Données utilisateur sauvegardées dans Firebase');
+        console.log('[PokéAPI] Données utilisateur sauvegardées dans Firebase');
     } catch (error) {
         console.error('Erreur lors de la sauvegarde dans Firebase:', error);
         // Fallback vers localStorage en cas d'erreur
