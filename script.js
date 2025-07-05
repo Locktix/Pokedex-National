@@ -45,7 +45,7 @@ async function init() {
 // Initialiser l'authentification Firebase
 function initAuth() {
     // Écouter les changements d'état d'authentification
-    auth.onAuthStateChanged(async (user) => {
+    window.auth.onAuthStateChanged(async (user) => {
         if (user) {
             // Utilisateur connecté
             currentUser = user;
@@ -108,7 +108,9 @@ async function handleLogin() {
     const password = document.getElementById('login-password').value;
     
     try {
-        await signInWithEmailAndPassword(auth, email, password);
+        // Importer les fonctions Firebase dynamiquement
+        const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js');
+        await signInWithEmailAndPassword(window.auth, email, password);
         showNotification('Connexion réussie ! 🎉', 'success');
     } catch (error) {
         console.error('Erreur de connexion:', error);
@@ -123,9 +125,13 @@ async function handleRegister() {
     const password = document.getElementById('register-password').value;
     
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Importer les fonctions Firebase dynamiquement
+        const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js');
+        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        
+        const userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
         // Créer le profil utilisateur dans Firestore
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
+        await setDoc(doc(window.db, 'users', userCredential.user.uid), {
             username: username,
             email: email,
             createdAt: new Date(),
@@ -141,7 +147,8 @@ async function handleRegister() {
 // Gérer la déconnexion
 async function handleLogout() {
     try {
-        await signOut(auth);
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js');
+        await signOut(window.auth);
         showNotification('Déconnexion réussie', 'info');
     } catch (error) {
         console.error('Erreur de déconnexion:', error);
@@ -392,7 +399,8 @@ async function loadUserData() {
     if (!currentUser) return;
     
     try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const userDoc = await getDoc(doc(window.db, 'users', currentUser.uid));
         if (userDoc.exists()) {
             const userData = userDoc.data();
             capturedPokemon = new Set(userData.capturedPokemon || []);
@@ -415,7 +423,8 @@ async function saveUserData() {
     if (!currentUser) return;
     
     try {
-        await updateDoc(doc(db, 'users', currentUser.uid), {
+        const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        await updateDoc(doc(window.db, 'users', currentUser.uid), {
             capturedPokemon: Array.from(capturedPokemon),
             currentFilter: currentFilter,
             lastSaved: new Date()
