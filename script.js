@@ -808,27 +808,40 @@ function clearSearch() {
 }
 
 function goToPokemon(pokemonNumber) {
+    // Forcer le filtre sur "Tous" pour que la carte soit visible
+    setFilter('all');
+
     // Calculer la page où se trouve ce Pokémon
     const targetPage = Math.ceil(pokemonNumber / POKEMON_PER_PAGE);
-    
+
     // Aller à la page
     currentPage = targetPage;
     displayCurrentPage();
     updateStats();
-    
+
     // Fermer la recherche
     clearSearch();
-    
-    // Mettre en surbrillance le Pokémon (optionnel)
-    setTimeout(() => {
+
+    // Attendre que la carte soit bien présente dans le DOM
+    let tries = 0;
+    function highlightCard() {
         const pokemonCard = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
         if (pokemonCard) {
+            if (capturedPokemon.has(pokemonNumber)) {
+                pokemonCard.classList.add('captured');
+            } else {
+                pokemonCard.classList.remove('captured');
+            }
             pokemonCard.style.animation = 'capturedPulse 1s ease';
             setTimeout(() => {
                 pokemonCard.style.animation = '';
             }, 1000);
+        } else if (tries < 10) {
+            tries++;
+            setTimeout(highlightCard, 50);
         }
-    }, 100);
+    }
+    highlightCard();
 }
 
 // Afficher un message de bienvenue

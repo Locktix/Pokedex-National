@@ -54,27 +54,25 @@
             </div>
         </header>
 
-        <div class="controls">
-            <div class="search-section">
-                <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Rechercher un Pokémon..." class="search-input">
-                    <button id="search-btn" class="search-btn">🔍</button>
-                    <button id="clear-search" class="clear-search-btn" style="display: none;">✕</button>
-                </div>
+        <div class="main-toolbar">
+            <div class="toolbar-search" style="position: relative;">
+                <input type="text" id="search-input" placeholder="Rechercher un Pokémon..." class="search-input">
+                <button id="search-btn" class="search-btn">🔍</button>
+                <button id="clear-search" class="clear-search-btn" style="display: none;">✕</button>
                 <div id="search-results" class="search-results" style="display: none;"></div>
             </div>
-            
-            <div class="page-navigation">
-                <button id="prev-page" class="nav-btn">← Précédent</button>
-                <span class="page-info">Page <span id="current-page">1</span> sur 65</span>
-                <button id="next-page" class="nav-btn">Suivant →</button>
+            <div class="toolbar-filters">
+                <button id="show-all" class="filter-btn active">Tous</button>
+                <button id="show-captured" class="filter-btn">Capturés</button>
+                <button id="show-missing" class="filter-btn">Manquants</button>
             </div>
-            <div class="view-controls">
-                <div class="filter-buttons">
-                    <button id="show-all" class="filter-btn active">Tous</button>
-                    <button id="show-captured" class="filter-btn">Capturés</button>
-                    <button id="show-missing" class="filter-btn">Manquants</button>
-                </div>
+            <div class="toolbar-pagination">
+                <button id="first-page" class="nav-btn" title="Première page">⏮</button>
+                <button id="prev-page" class="nav-btn" title="Page précédente">←</button>
+                <span class="page-info">Page <span id="current-page">1</span> / 65</span>
+                <button id="next-page" class="nav-btn" title="Page suivante">→</button>
+                <input type="number" id="goto-page-input" min="1" max="65" placeholder="Page" class="goto-input">
+                <button id="goto-page-btn" class="nav-btn">Aller</button>
             </div>
         </div>
 
