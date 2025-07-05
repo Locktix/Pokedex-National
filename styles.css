@@ -509,6 +509,7 @@ footer {
     }
     
     .pokemon-grid {
+        grid-template-columns: repeat(4, 1fr);
         gap: 10px;
     }
     
@@ -544,8 +545,23 @@ footer {
 
 @media (max-width: 480px) {
     .pokemon-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+    
+    .pokemon-card {
+        min-height: 80px;
+        padding: 10px 5px;
+    }
+    
+    .pokemon-number {
+        font-size: 0.8rem;
+        margin-bottom: 2px;
+    }
+    
+    .pokemon-name {
+        font-size: 0.6rem;
+        line-height: 1.1;
     }
     
     .stat-item {
