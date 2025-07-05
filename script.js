@@ -26,6 +26,11 @@ const showAllBtn = document.getElementById('show-all');
 const showCapturedBtn = document.getElementById('show-captured');
 const showMissingBtn = document.getElementById('show-missing');
 
+// Variables pour la recherche
+let searchTimeout = null;
+let selectedResultIndex = -1;
+let currentSearchResults = [];
+
 // Fonction pour récupérer tous les noms de Pokémon en français depuis PokéAPI
 async function fetchFrenchPokemonNames() {
     console.log('[PokéAPI] Début du chargement de la liste des espèces...');
@@ -369,7 +374,8 @@ function setupEventListeners() {
     }
 
     // Event listeners pour la recherche
-    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('input', handleSearchInput);
+    searchInput.addEventListener('keydown', handleSearchKeydown);
     searchBtn.addEventListener('click', () => handleSearch());
     clearSearchBtn.addEventListener('click', clearSearch);
     
@@ -380,11 +386,11 @@ function setupEventListeners() {
         }
     });
     
-    // Recherche avec Entrée
-    searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+    // Focus sur la barre de recherche avec Ctrl+F
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'f') {
             e.preventDefault();
-            handleSearch();
+            searchInput.focus();
         }
     });
     
@@ -847,15 +853,88 @@ function applyCurrentFilter() {
     });
 }
 
-// Fonctions de recherche
-function handleSearch() {
-    const query = searchInput.value.trim().toLowerCase();
+// Fonctions de recherche refaites
+function handleSearchInput() {
+    const query = searchInput.value.trim();
+    
+    // Afficher le bouton de suppression si il y a du texte
+    clearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+    
+    // Recherche en temps réel avec délai
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
     
     if (query.length === 0) {
-        clearSearch();
+        hideSearchResults();
         return;
     }
     
+    searchTimeout = setTimeout(() => {
+        performSearch(query);
+    }, 300);
+}
+
+function handleSearchKeydown(e) {
+    if (!searchResults.style.display || searchResults.style.display === 'none') {
+        return;
+    }
+    
+    switch (e.key) {
+        case 'ArrowDown':
+            e.preventDefault();
+            navigateResults(1);
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            navigateResults(-1);
+            break;
+        case 'Enter':
+            e.preventDefault();
+            if (selectedResultIndex >= 0 && currentSearchResults[selectedResultIndex]) {
+                selectSearchResult(currentSearchResults[selectedResultIndex].number);
+            } else {
+                handleSearch();
+            }
+            break;
+        case 'Escape':
+            e.preventDefault();
+            clearSearch();
+            break;
+    }
+}
+
+function navigateResults(direction) {
+    const resultItems = searchResults.querySelectorAll('.search-result-item');
+    
+    // Retirer la sélection précédente
+    if (selectedResultIndex >= 0 && resultItems[selectedResultIndex]) {
+        resultItems[selectedResultIndex].classList.remove('selected');
+    }
+    
+    // Calculer le nouvel index
+    selectedResultIndex += direction;
+    
+    if (selectedResultIndex < 0) {
+        selectedResultIndex = resultItems.length - 1;
+    } else if (selectedResultIndex >= resultItems.length) {
+        selectedResultIndex = 0;
+    }
+    
+    // Appliquer la nouvelle sélection
+    if (resultItems[selectedResultIndex]) {
+        resultItems[selectedResultIndex].classList.add('selected');
+        resultItems[selectedResultIndex].scrollIntoView({ 
+            block: 'nearest', 
+            behavior: 'smooth' 
+        });
+    }
+}
+
+function performSearch(query) {
+    const searchTerm = query.toLowerCase();
+    
+    // Rechercher dans la liste des Pokémon
     const results = pokemonList
         .map((name, index) => ({
             number: index + 1,
@@ -863,24 +942,27 @@ function handleSearch() {
             isCaptured: capturedPokemon.has(index + 1)
         }))
         .filter(pokemon => 
-            pokemon.name.toLowerCase().includes(query) ||
-            pokemon.number.toString().includes(query)
+            pokemon.name.toLowerCase().includes(searchTerm) ||
+            pokemon.number.toString().includes(searchTerm)
         )
-        .slice(0, 10); // Limiter à 10 résultats
+        .slice(0, 8); // Limiter à 8 résultats
     
+    currentSearchResults = results;
     displaySearchResults(results);
 }
 
 function displaySearchResults(results) {
     if (results.length === 0) {
-        searchResults.innerHTML = '<div class="search-result-item">Aucun Pokémon trouvé</div>';
+        searchResults.innerHTML = '<div class="search-no-results">Aucun Pokémon trouvé</div>';
         showSearchResults();
         return;
     }
     
-    searchResults.innerHTML = results.map(pokemon => `
-        <div class="search-result-item" onclick="goToPokemon(${pokemon.number})" data-pokemon-number="${pokemon.number}">
-            <div class="search-result-image"></div>
+    searchResults.innerHTML = results.map((pokemon, index) => `
+        <div class="search-result-item" 
+             onclick="selectSearchResult(${pokemon.number})" 
+             data-index="${index}">
+            <div class="search-result-image" data-pokemon="${pokemon.number}"></div>
             <div class="search-result-content">
                 <div class="search-result-number">#${pokemon.number.toString().padStart(3, '0')}</div>
                 <div class="search-result-name">${pokemon.name}</div>
@@ -889,51 +971,49 @@ function displaySearchResults(results) {
         </div>
     `).join('');
     
-    // Charger les images pour les résultats de recherche
+    // Charger les images pour les résultats
     results.forEach(pokemon => {
-        const resultItem = searchResults.querySelector(`[data-pokemon-number="${pokemon.number}"]`);
-        if (resultItem) {
-            loadSearchResultImage(resultItem, pokemon.number);
-        }
+        loadSearchResultImage(pokemon.number);
     });
     
     showSearchResults();
+    selectedResultIndex = -1; // Reset la sélection
 }
 
-// Charger l'image pour un résultat de recherche
-async function loadSearchResultImage(resultItem, pokemonNumber) {
-    try {
-        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonNumber}.png`;
-        const imageElement = resultItem.querySelector('.search-result-image');
-        
-        const img = new Image();
-        
-        img.onload = () => {
-            imageElement.style.backgroundImage = `url(${imageUrl})`;
-            imageElement.style.backgroundSize = 'cover';
-            imageElement.style.backgroundPosition = 'center';
-            imageElement.style.backgroundRepeat = 'no-repeat';
-        };
-        
-        img.onerror = () => {
-            console.warn(`Impossible de charger l'image pour le Pokémon #${pokemonNumber} dans la recherche`);
-            imageElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        };
-        
-        img.src = imageUrl;
-        
-    } catch (error) {
-        console.error(`Erreur lors du chargement de l'image de recherche pour le Pokémon #${pokemonNumber}:`, error);
-    }
+function loadSearchResultImage(pokemonNumber) {
+    const imageElement = searchResults.querySelector(`[data-pokemon="${pokemonNumber}"]`);
+    if (!imageElement) return;
+    
+    const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonNumber}.png`;
+    
+    const img = new Image();
+    img.onload = () => {
+        imageElement.style.backgroundImage = `url(${imageUrl})`;
+    };
+    img.onerror = () => {
+        console.warn(`Impossible de charger l'image pour le Pokémon #${pokemonNumber}`);
+    };
+    img.src = imageUrl;
+}
+
+function selectSearchResult(pokemonNumber) {
+    console.log(`[SEARCH] Sélection du Pokémon #${pokemonNumber}`);
+    
+    // Fermer la recherche
+    hideSearchResults();
+    clearSearch();
+    
+    // Aller au Pokémon
+    goToPokemon(pokemonNumber);
 }
 
 function showSearchResults() {
     searchResults.style.display = 'block';
-    clearSearchBtn.style.display = 'flex';
 }
 
 function hideSearchResults() {
     searchResults.style.display = 'none';
+    selectedResultIndex = -1;
 }
 
 function clearSearch() {
@@ -943,55 +1023,55 @@ function clearSearch() {
     searchInput.focus();
 }
 
+function handleSearch() {
+    const query = searchInput.value.trim();
+    if (query.length > 0) {
+        performSearch(query);
+    }
+}
+
 function goToPokemon(pokemonNumber) {
+    console.log(`[SEARCH] Navigation vers le Pokémon #${pokemonNumber}`);
+    
     // Forcer le filtre sur "Tous" pour que la carte soit visible
     setFilter('all');
-
-    // Calculer la page où se trouve ce Pokémon
+    
+    // Calculer la page contenant ce Pokémon
     const targetPage = Math.ceil(pokemonNumber / POKEMON_PER_PAGE);
-
-    // Aller à la page
-    currentPage = targetPage;
-    displayCurrentPage();
+    
+    console.log(`[SEARCH] Pokémon #${pokemonNumber} se trouve à la page ${targetPage} (${POKEMON_PER_PAGE} Pokémon par page)`);
+    
+    // Aller à la page si nécessaire
+    if (currentPage !== targetPage) {
+        currentPage = targetPage;
+        displayCurrentPage();
+        updateNavigationButtons();
+    }
+    
+    // Mettre à jour les statistiques
     updateStats();
-
-    // Fermer la recherche
-    clearSearch();
-
-    // Attendre que la carte soit bien présente dans le DOM puis METTRE EN SURBRILLANCE
-    let tries = 0;
-    function findAndHighlightCard() {
+    
+    // Attendre que la carte soit bien présente dans le DOM puis la mettre en surbrillance
+    setTimeout(() => {
         const pokemonCard = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
         if (pokemonCard) {
             console.log(`[SEARCH] Carte trouvée, mise en surbrillance`);
             
-            // METTRE EN SURBRILLANCE SANS CAPTURER
-            const isCaptured = capturedPokemon.has(pokemonNumber);
-            
-            // Mettre à jour l'affichage selon l'état actuel
-            if (isCaptured) {
-                pokemonCard.classList.add('captured');
-            } else {
-                pokemonCard.classList.remove('captured');
-            }
-            
-            // Animation de surbrillance pour indiquer qu'on a trouvé le Pokémon
-            pokemonCard.style.animation = 'capturedPulse 1s ease';
+            // Animation de surbrillance
+            pokemonCard.style.animation = 'capturedPulse 1.5s ease';
             setTimeout(() => {
                 pokemonCard.style.animation = '';
-                console.log(`[SEARCH] Animation de surbrillance terminée`);
-            }, 1000);
+            }, 1500);
             
-        } else if (tries < 15) {
-            tries++;
-            setTimeout(findAndHighlightCard, 100);
+            // Scroll vers la carte
+            pokemonCard.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
         } else {
-            console.log(`[SEARCH] ERREUR: Carte non trouvée après 15 tentatives`);
+            console.log(`[SEARCH] ERREUR: Carte non trouvée`);
         }
-    }
-    
-    // Démarrer la recherche de la carte
-    setTimeout(findAndHighlightCard, 200);
+    }, 300);
 }
 
 // Afficher un message de bienvenue
