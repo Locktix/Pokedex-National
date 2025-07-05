@@ -15,16 +15,16 @@
             <p class="auth-subtitle">Connectez-vous pour sauvegarder votre progression</p>
             
             <form id="login-form" class="auth-form">
-                <input type="email" id="login-email" placeholder="Email" class="auth-input" required>
-                <input type="password" id="login-password" placeholder="Mot de passe" class="auth-input" required>
+                <input type="email" id="login-email" placeholder="Email" class="auth-input" autocomplete="email" required>
+                <input type="password" id="login-password" placeholder="Mot de passe" class="auth-input" autocomplete="current-password" required>
                 <button type="submit" id="login-btn" class="auth-btn primary">Se connecter</button>
                 <button type="button" id="show-register" class="auth-btn secondary">Créer un compte</button>
             </form>
             
             <form id="register-form" class="auth-form" style="display: none;">
-                <input type="text" id="register-username" placeholder="Nom d'utilisateur" class="auth-input" required>
-                <input type="email" id="register-email" placeholder="Email" class="auth-input" required>
-                <input type="password" id="register-password" placeholder="Mot de passe" class="auth-input" required>
+                <input type="text" id="register-username" placeholder="Nom d'utilisateur" class="auth-input" autocomplete="username" required>
+                <input type="email" id="register-email" placeholder="Email" class="auth-input" autocomplete="email" required>
+                <input type="password" id="register-password" placeholder="Mot de passe" class="auth-input" autocomplete="new-password" required>
                 <button type="submit" id="register-btn" class="auth-btn primary">Créer un compte</button>
                 <button type="button" id="show-login" class="auth-btn secondary">Déjà un compte ?</button>
             </form>

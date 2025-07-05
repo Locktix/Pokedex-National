@@ -44,11 +44,23 @@ async function init() {
 
 // Initialiser l'authentification Firebase
 function initAuth() {
+    console.log('Initialisation de l\'authentification Firebase...');
+    
+    // Vérifier que Firebase est disponible
+    if (!window.auth) {
+        console.error('Firebase Auth n\'est pas disponible');
+        showNotification('Erreur: Firebase non initialisé', 'error');
+        return;
+    }
+    
     // Écouter les changements d'état d'authentification
     window.auth.onAuthStateChanged(async (user) => {
+        console.log('État d\'authentification changé:', user ? user.email : 'Déconnecté');
+        
         if (user) {
             // Utilisateur connecté
             currentUser = user;
+            console.log('Utilisateur connecté:', user.email);
             showApp();
             await loadUserData();
             setupEventListeners();
@@ -58,6 +70,7 @@ function initAuth() {
         } else {
             // Utilisateur déconnecté
             currentUser = null;
+            console.log('Utilisateur déconnecté');
             showAuth();
         }
     });
@@ -74,9 +87,29 @@ function showAuth() {
 
 // Afficher l'application
 function showApp() {
-    document.getElementById('auth-container').style.display = 'none';
-    document.getElementById('app-container').style.display = 'block';
-    document.getElementById('user-email').textContent = currentUser.email;
+    console.log('Affichage de l\'application...');
+    
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.getElementById('app-container');
+    const userEmail = document.getElementById('user-email');
+    
+    if (authContainer && appContainer && userEmail) {
+        authContainer.style.display = 'none';
+        appContainer.style.display = 'block';
+        userEmail.textContent = currentUser.email;
+        console.log('Interface de l\'application affichée');
+    } else {
+        console.error('Éléments DOM manquants:', {
+            authContainer: !!authContainer,
+            appContainer: !!appContainer,
+            userEmail: !!userEmail
+        });
+    }
+    
+    // Nettoyer l'URL si nécessaire
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 }
 
 // Configurer les event listeners d'authentification
@@ -107,14 +140,45 @@ async function handleLogin() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     
+    console.log('Tentative de connexion avec:', email);
+    
+    if (!email || !password) {
+        showNotification('Veuillez remplir tous les champs', 'error');
+        return;
+    }
+    
     try {
         // Importer les fonctions Firebase dynamiquement
         const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js');
-        await signInWithEmailAndPassword(window.auth, email, password);
+        console.log('Firebase auth importé, tentative de connexion...');
+        
+        const userCredential = await signInWithEmailAndPassword(window.auth, email, password);
+        console.log('Connexion réussie:', userCredential.user.email);
         showNotification('Connexion réussie ! 🎉', 'success');
     } catch (error) {
-        console.error('Erreur de connexion:', error);
-        showNotification('Erreur de connexion: ' + error.message, 'error');
+        console.error('Erreur de connexion détaillée:', error);
+        console.error('Code d\'erreur:', error.code);
+        console.error('Message d\'erreur:', error.message);
+        
+        let errorMessage = 'Erreur de connexion';
+        switch (error.code) {
+            case 'auth/user-not-found':
+                errorMessage = 'Aucun compte trouvé avec cet email';
+                break;
+            case 'auth/wrong-password':
+                errorMessage = 'Mot de passe incorrect';
+                break;
+            case 'auth/invalid-email':
+                errorMessage = 'Email invalide';
+                break;
+            case 'auth/too-many-requests':
+                errorMessage = 'Trop de tentatives. Réessayez plus tard';
+                break;
+            default:
+                errorMessage = error.message;
+        }
+        
+        showNotification(errorMessage, 'error');
     }
 }
 
@@ -124,12 +188,28 @@ async function handleRegister() {
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
     
+    console.log('Tentative d\'inscription avec:', email, username);
+    
+    if (!username || !email || !password) {
+        showNotification('Veuillez remplir tous les champs', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('Le mot de passe doit contenir au moins 6 caractères', 'error');
+        return;
+    }
+    
     try {
         // Importer les fonctions Firebase dynamiquement
         const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js');
         const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
         
+        console.log('Firebase imports réussis, création du compte...');
+        
         const userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
+        console.log('Compte créé avec succès:', userCredential.user.uid);
+        
         // Créer le profil utilisateur dans Firestore
         await setDoc(doc(window.db, 'users', userCredential.user.uid), {
             username: username,
@@ -137,10 +217,30 @@ async function handleRegister() {
             createdAt: new Date(),
             capturedPokemon: []
         });
+        console.log('Profil utilisateur créé dans Firestore');
+        
         showNotification('Compte créé avec succès ! 🎉', 'success');
     } catch (error) {
-        console.error('Erreur d\'inscription:', error);
-        showNotification('Erreur d\'inscription: ' + error.message, 'error');
+        console.error('Erreur d\'inscription détaillée:', error);
+        console.error('Code d\'erreur:', error.code);
+        console.error('Message d\'erreur:', error.message);
+        
+        let errorMessage = 'Erreur d\'inscription';
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                errorMessage = 'Un compte existe déjà avec cet email';
+                break;
+            case 'auth/invalid-email':
+                errorMessage = 'Email invalide';
+                break;
+            case 'auth/weak-password':
+                errorMessage = 'Le mot de passe est trop faible';
+                break;
+            default:
+                errorMessage = error.message;
+        }
+        
+        showNotification(errorMessage, 'error');
     }
 }
 
@@ -530,7 +630,17 @@ document.addEventListener('keydown', (event) => {
 });
 
 // Démarrer l'application quand le DOM est chargé
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM chargé, initialisation de l\'application...');
+    init();
+});
+
+// Empêcher le rechargement de la page lors de la soumission des formulaires
+document.addEventListener('submit', (e) => {
+    if (e.target.id === 'login-form' || e.target.id === 'register-form') {
+        e.preventDefault();
+    }
+});
 
 // Sauvegarder automatiquement toutes les 30 secondes
 setInterval(saveUserData, 30000);
