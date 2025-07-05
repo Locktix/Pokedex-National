@@ -126,4 +126,4 @@ Ce projet est créé à des fins éducatives et de divertissement. Tous les noms
 
 **Développé avec ❤️ par Alan B.**
 
-*Dernière mise à jour : 2024* 
+*Dernière mise à jour : 2025* 
