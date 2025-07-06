@@ -1589,7 +1589,6 @@ footer {
 }
 
 .dark-mode .search-input {
-    background: rgba(255, 255, 255, 0.1) !important;
     color: #e0e0e0 !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
@@ -2276,4 +2275,13 @@ footer {
 .dark-mode main {
     background: rgba(26, 26, 46, 0.95) !important;
     color: #e0e0e0 !important;
+}
+
+.dark-mode .search-container {
+    background: rgba(26, 26, 46, 0.95) !important;
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .settings-section h4 {
+    color: #fff !important;
 } 
