@@ -505,6 +505,7 @@ h1 {
     display: flex;
     gap: 8px;
     align-items: center;
+    margin-left: 24px;
 }
 
 .filter-btn {
@@ -515,7 +516,7 @@ h1 {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     background: rgba(102, 126, 234, 0.15);
     color: #667eea;
     border: 2px solid rgba(102, 126, 234, 0.2);
@@ -584,9 +585,12 @@ main {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
+.pokemon-card.not-captured {
+    filter: grayscale(1) brightness(0.7) contrast(1.1);
+}
+
 .pokemon-card.captured {
-    border: 3px solid #4ecdc4;
-    animation: capturedPulse 0.5s ease;
+    filter: none;
 }
 
 .pokemon-card.captured .card-overlay {

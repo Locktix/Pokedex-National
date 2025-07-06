@@ -27,6 +27,9 @@ const searchInput = document.getElementById('search-input');
 const clearSearchBtn = document.getElementById('clear-search');
 const searchResults = document.getElementById('search-results');
 
+const showAllBtn = document.getElementById('show-all');
+const showCapturedBtn = document.getElementById('show-captured');
+const showMissingBtn = document.getElementById('show-missing');
 
 // Variables pour la recherche
 let searchTimeout = null;
@@ -410,72 +413,10 @@ function setupEventListeners() {
         }
     });
     
-    // Event listeners pour le dropdown des filtres
-    setupFilterDropdown();
-}
-
-// Configurer le dropdown des filtres
-function setupFilterDropdown() {
-    const filterDropdownBtn = document.getElementById('filter-dropdown-btn');
-    const filterDropdownMenu = document.getElementById('filter-dropdown-menu');
-    const filterOptions = document.querySelectorAll('.filter-option');
-    
-    // Ouvrir/fermer le dropdown
-    filterDropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        filterDropdownMenu.classList.toggle('show');
-        filterDropdownBtn.classList.toggle('active');
-    });
-    
-    // Fermer le dropdown en cliquant ailleurs
-    document.addEventListener('click', (e) => {
-        if (!filterDropdownBtn.contains(e.target) && !filterDropdownMenu.contains(e.target)) {
-            filterDropdownMenu.classList.remove('show');
-            filterDropdownBtn.classList.remove('active');
-        }
-    });
-    
-    // Gérer la sélection des filtres
-    filterOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            const filter = option.dataset.filter;
-            setFilter(filter);
-            
-            // Mettre à jour l'affichage du dropdown
-            updateFilterDropdownDisplay(filter);
-            
-            // Fermer le dropdown
-            filterDropdownMenu.classList.remove('show');
-            filterDropdownBtn.classList.remove('active');
-        });
-    });
-}
-
-// Mettre à jour l'affichage du dropdown
-function updateFilterDropdownDisplay(filter) {
-    const filterDropdownText = document.getElementById('filter-dropdown-text');
-    const filterOptions = document.querySelectorAll('.filter-option');
-    
-    // Retirer la sélection précédente
-    filterOptions.forEach(option => {
-        option.classList.remove('selected');
-    });
-    
-    // Mettre à jour le texte du bouton et sélectionner l'option
-    switch (filter) {
-        case 'all':
-            filterDropdownText.textContent = 'Tous les Pokémon';
-            filterOptions[0].classList.add('selected');
-            break;
-        case 'captured':
-            filterDropdownText.textContent = 'Pokémon capturés';
-            filterOptions[1].classList.add('selected');
-            break;
-        case 'missing':
-            filterDropdownText.textContent = 'Pokémon manquants';
-            filterOptions[2].classList.add('selected');
-            break;
-    }
+    // Event listeners pour les filtres
+    showAllBtn.addEventListener('click', () => setFilter('all'));
+    showCapturedBtn.addEventListener('click', () => setFilter('captured'));
+    showMissingBtn.addEventListener('click', () => setFilter('missing'));
 }
 
 // Afficher la page courante
@@ -521,7 +462,7 @@ function displayCurrentPage() {
 // Créer une carte Pokémon
 function createPokemonCard(number, name, isCaptured) {
     const card = document.createElement('div');
-    card.className = `pokemon-card ${isCaptured ? 'captured' : ''}`;
+    card.className = `pokemon-card${isCaptured ? ' captured' : ' not-captured'}`;
     card.dataset.pokemonNumber = number;
     
     card.innerHTML = `
@@ -660,10 +601,8 @@ function updatePokemonCard(pokemonNumber) {
     const card = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
     if (card) {
         const isCaptured = capturedPokemon.has(pokemonNumber);
-        
-        // Mettre à jour la classe CSS
         card.classList.toggle('captured', isCaptured);
-        
+        card.classList.toggle('not-captured', !isCaptured);
         // Mettre à jour l'overlay si il existe
         const overlay = card.querySelector('.card-overlay');
         if (overlay) {
@@ -883,11 +822,11 @@ setInterval(saveUserData, 30000);
 // Fonctions de filtrage
 function setFilter(filter) {
     currentFilter = filter;
-    // Mettre à jour l'affichage du dropdown
-    updateFilterDropdownDisplay(filter);
+    showAllBtn.classList.toggle('active', filter === 'all');
+    showCapturedBtn.classList.toggle('active', filter === 'captured');
+    showMissingBtn.classList.toggle('active', filter === 'missing');
     displayCurrentPage();
     updateStats();
-    // Sauvegarder la préférence de filtre
     saveUserData();
 }
 
