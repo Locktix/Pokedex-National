@@ -2271,4 +2271,9 @@ footer {
 .dark-mode .role-badge.admin {
     background: #4a1e2e;
     color: #ff6b6b;
+}
+
+.dark-mode main {
+    background: rgba(26, 26, 46, 0.95) !important;
+    color: #e0e0e0 !important;
 } 

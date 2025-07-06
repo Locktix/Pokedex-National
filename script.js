@@ -809,6 +809,9 @@ document.addEventListener('keydown', (event) => {
 
 // Démarrer l'application quand le DOM est chargé
 document.addEventListener('DOMContentLoaded', () => {
+    // Synchroniser la variable globale avec le localStorage
+    isDarkMode = localStorage.getItem('darkMode') === 'true';
+    applyDarkMode();
     console.log('DOM chargé, initialisation de l\'application...');
     init();
     // Attacher le listener sur le bouton "Gérer les utilisateurs" après que le DOM soit prêt
