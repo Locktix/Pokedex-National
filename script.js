@@ -24,7 +24,6 @@ const remainingElement = document.getElementById('remaining');
 const prevPageBtn = document.getElementById('prev-page');
 const nextPageBtn = document.getElementById('next-page');
 const searchInput = document.getElementById('search-input');
-const searchBtn = document.getElementById('search-btn');
 const clearSearchBtn = document.getElementById('clear-search');
 const searchResults = document.getElementById('search-results');
 
@@ -394,7 +393,6 @@ function setupEventListeners() {
     // Event listeners pour la recherche
     searchInput.addEventListener('input', handleSearchInput);
     searchInput.addEventListener('keydown', handleSearchKeydown);
-    searchBtn.addEventListener('click', () => handleSearch());
     clearSearchBtn.addEventListener('click', clearSearch);
     
     // Fermer les résultats de recherche en cliquant ailleurs

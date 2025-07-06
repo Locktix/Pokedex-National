@@ -225,16 +225,22 @@ h1 {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
+    flex: 1;
+    max-width: 400px;
 }
 
 .search-container {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(102,126,234,0.1);
-    border: 2px solid transparent;
+    position: relative;
     display: flex;
     align-items: center;
+    gap: 6px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(102,126,234,0.07);
+    padding: 0 10px;
+    height: 44px;
+    width: 100%;
     transition: all 0.3s ease;
 }
 
@@ -249,9 +255,9 @@ h1 {
     background: transparent;
     font-size: 1rem;
     font-family: 'Poppins', sans-serif;
-    padding: 12px 15px;
-    width: 250px;
-    border-radius: 10px 0 0 10px;
+    padding: 10px 0;
+    width: 100%;
+    flex: 1;
 }
 
 .search-btn, .clear-search-btn {
@@ -279,11 +285,18 @@ h1 {
 
 .clear-search-btn {
     background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: #fff;
+    border: none;
     border-radius: 50%;
-    margin-left: 8px;
-    width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
 }
 
 .clear-search-btn:hover {
@@ -906,17 +919,6 @@ footer {
     flex-wrap: wrap;
 }
 
-.toolbar-search {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(102,126,234,0.07);
-    padding: 0 10px;
-    height: 44px;
-}
-
 .search-input {
     border: none;
     outline: none;
@@ -924,7 +926,8 @@ footer {
     font-size: 1rem;
     font-family: 'Poppins', sans-serif;
     padding: 10px 0;
-    width: 180px;
+    width: 100%;
+    flex: 1;
 }
 
 .search-btn, .clear-search-btn {
@@ -943,13 +946,6 @@ footer {
 }
 .clear-search-btn {
     background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-}
-
-.toolbar-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
 }
 
 /* Dropdown des filtres */
@@ -1051,10 +1047,22 @@ footer {
     font-size: 0.9rem;
 }
 
-.toolbar-pagination {
+/* Pagination en bas */
+.pagination-container {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    background: #f7f8fa;
+    border-radius: 16px;
+    padding: 12px 20px;
+    box-shadow: 0 2px 8px rgba(102,126,234,0.06);
+    flex-wrap: wrap;
 }
 
 .page-info {
@@ -1101,11 +1109,11 @@ footer {
 
 @media (max-width: 600px) {
     .search-input {
-        width: 150px;
+        width: 100%;
         padding: 10px 12px;
     }
     
-    .search-btn, .clear-search-btn {
+    .clear-search-btn {
         width: 36px;
         height: 36px;
     }
@@ -1135,10 +1143,8 @@ footer {
         padding: 12px 16px;
     }
     
-    .toolbar-controls {
-        width: 100%;
-        justify-content: space-between;
-        gap: 12px;
+    .toolbar-search {
+        max-width: 100%;
     }
     
     .filter-dropdown {
@@ -1150,9 +1156,10 @@ footer {
         font-size: 0.85rem;
     }
     
-    .toolbar-pagination {
+    .pagination-controls {
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 8px;
+        padding: 10px 16px;
     }
     
     .page-info {
@@ -1896,57 +1903,35 @@ footer {
     background: rgba(102, 126, 234, 0.3) !important;
 }
 
-.dark-mode .role-select {
-    background: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
+/* Dark mode pour la pagination en bas */
+.dark-mode .pagination-controls {
+    background: rgba(26, 26, 46, 0.95) !important;
+    color: #e0e0e0 !important;
 }
 
-.dark-mode .role-select:focus {
-    border-color: #667eea;
+.dark-mode .page-info {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
 }
 
-.dark-mode .update-role-btn {
-    background: #38a169;
+.dark-mode .goto-input {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-.dark-mode .update-role-btn:hover {
-    background: #2f855a;
+.dark-mode .goto-input::placeholder {
+    color: rgba(224, 224, 224, 0.6) !important;
 }
 
-/* Dark mode pour les éléments admin */
-.dark-mode .admin-btn {
-    background: linear-gradient(135deg, #4a5568, #2d3748);
-    color: #e2e8f0;
+.dark-mode .nav-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-.dark-mode .admin-btn:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.dark-mode .admin-input {
-    background: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
-}
-
-.dark-mode .admin-input:focus {
-    border-color: #667eea;
-}
-
-.dark-mode .users-table th {
-    background: #2d3748;
-    color: #e2e8f0;
-}
-
-.dark-mode .users-table tr:hover {
-    background: #4a5568;
-}
-
-.dark-mode .users-table td {
-    border-bottom-color: #4a5568;
-    color: #e2e8f0;
+.dark-mode .nav-btn:hover {
+    background: rgba(102, 126, 234, 0.3) !important;
 }
 
 /* Écran de maintenance */
@@ -2042,4 +2027,61 @@ footer {
 
 .dark-mode .maintenance-info p {
     color: #e0e0e0;
+}
+
+.dark-mode .nav-btn:hover {
+    background: rgba(102, 126, 234, 0.3) !important;
+}
+
+.dark-mode .role-select {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+.dark-mode .role-select:focus {
+    border-color: #667eea;
+}
+
+.dark-mode .update-role-btn {
+    background: #38a169;
+}
+
+.dark-mode .update-role-btn:hover {
+    background: #2f855a;
+}
+
+/* Dark mode pour les éléments admin */
+.dark-mode .admin-btn {
+    background: linear-gradient(135deg, #4a5568, #2d3748);
+    color: #e2e8f0;
+}
+
+.dark-mode .admin-btn:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.dark-mode .admin-input {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+.dark-mode .admin-input:focus {
+    border-color: #667eea;
+}
+
+.dark-mode .users-table th {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+.dark-mode .users-table tr:hover {
+    background: #4a5568;
+}
+
+.dark-mode .users-table td {
+    border-bottom-color: #4a5568;
+    color: #e2e8f0;
 } 
