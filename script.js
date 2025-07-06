@@ -822,6 +822,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.warn('[ADMIN] Bouton #manage-users introuvable dans le DOM');
     }
+
+    // Afficher la version du site dynamiquement depuis version.json
+    fetch('version.json')
+      .then(response => response.json())
+      .then(data => {
+        const footer = document.querySelector('.footer-minimal span');
+        if (footer && data.version) {
+          let versionText = ` · v${data.version}`;
+          let tooltip = '';
+          if (data.date || data.changelog) {
+            tooltip = 'Version : ' + data.version;
+            if (data.date) tooltip += '\nDate : ' + data.date;
+            if (data.changelog) tooltip += '\n' + data.changelog;
+          }
+          const versionSpan = document.createElement('span');
+          versionSpan.textContent = versionText;
+          if (tooltip) versionSpan.title = tooltip;
+          footer.appendChild(versionSpan);
+        }
+      });
 });
 
 // Empêcher le rechargement de la page lors de la soumission des formulaires
