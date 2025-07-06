@@ -1634,13 +1634,13 @@ footer {
 }
 
 .dark-mode .pokemon-card {
-    background: rgba(255, 255, 255, 0.05) !important;
+    /* background: rgba(255, 255, 255, 0.05) !important; */
     color: #e0e0e0 !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .dark-mode .pokemon-card:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
+    /* background: rgba(255, 255, 255, 0.1) !important; */
     border-color: rgba(102, 126, 234, 0.5) !important;
 }
 
@@ -1886,8 +1886,13 @@ footer {
 /* Boutons admin petits */
 .admin-btn.small {
     padding: 4px 8px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     margin: 0;
+    min-width: 32px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Dark mode pour les nouveaux éléments */
@@ -2106,4 +2111,164 @@ footer {
 .dark-mode .users-table td {
     border-bottom-color: #4a5568;
     color: #e2e8f0;
+}
+
+/* --- MODALE GESTION UTILISATEURS RELOOKÉE --- */
+.users-search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 18px;
+    position: relative;
+    max-width: 350px;
+    margin-left: auto;
+}
+.users-search-bar input {
+    width: 100%;
+    padding: 10px 36px 10px 14px;
+    border: 1.5px solid #667eea;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    transition: border 0.2s, box-shadow 0.2s;
+    background: #fff;
+    color: #222;
+}
+.users-search-bar input:focus {
+    outline: none;
+    border: 2px solid #764ba2;
+    box-shadow: 0 0 0 2px rgba(118,75,162,0.08);
+}
+.users-search-icon {
+    position: absolute;
+    right: 12px;
+    font-size: 1.2rem;
+    color: #667eea;
+    pointer-events: none;
+}
+.users-table-container {
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+}
+.users-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(102,126,234,0.07);
+    overflow: hidden;
+}
+.users-table th, .users-table td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+.users-table th {
+    background: #f8f9fa;
+    font-weight: 700;
+    color: #333;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.users-table th.actions, .users-table td.actions {
+    width: 70px;
+    min-width: 70px;
+    text-align: center;
+    padding: 0 6px;
+}
+.users-table tr:hover {
+    background: #f3f6fd;
+}
+.role-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+.role-badge.member {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+.role-badge.tester {
+    background: #fff3e0;
+    color: #f57c00;
+}
+.role-badge.admin {
+    background: #fce4ec;
+    color: #c2185b;
+}
+.admin-btn.small {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    margin: 0;
+    min-width: 32px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.users-table td.actions {
+    position: relative;
+}
+@media (max-width: 1000px) {
+    .users-table {
+        min-width: 700px;
+    }
+}
+@media (max-width: 700px) {
+    .users-modal {
+        max-width: 99vw;
+        padding: 0;
+    }
+    .users-table {
+        min-width: 500px;
+        font-size: 0.92rem;
+    }
+    .users-search-bar {
+        max-width: 100%;
+    }
+}
+/* Dark mode pour la modale utilisateurs */
+.dark-mode .users-search-bar input {
+    background: #23234a;
+    color: #e0e0e0;
+    border-color: #444a;
+}
+.dark-mode .users-search-bar input:focus {
+    border-color: #4ecdc4;
+    box-shadow: 0 0 0 2px rgba(78,205,196,0.10);
+}
+.dark-mode .users-search-icon {
+    color: #4ecdc4;
+}
+.dark-mode .users-table {
+    background: #23234a;
+    color: #e0e0e0;
+}
+.dark-mode .users-table th {
+    background: #2d2d5a;
+    color: #e0e0e0;
+}
+.dark-mode .users-table tr:hover {
+    background: #2d2d5a;
+}
+.dark-mode .role-badge.member {
+    background: #1e3a5c;
+    color: #4ecdc4;
+}
+.dark-mode .role-badge.tester {
+    background: #4a3a1e;
+    color: #ffd166;
+}
+.dark-mode .role-badge.admin {
+    background: #4a1e2e;
+    color: #ff6b6b;
 } 

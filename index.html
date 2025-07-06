@@ -167,9 +167,16 @@
                 <button id="close-users" class="close-btn">✕</button>
             </div>
             <div class="modal-body">
-                <div id="users-content">
-                    <p>Chargement des utilisateurs...</p>
+                <div class="users-search-bar">
+                    <input type="text" id="users-search-input" placeholder="Rechercher par nom, email ou rôle..." autocomplete="off">
+                    <span class="users-search-icon">🔍</span>
                 </div>
+                <div class="users-table-container">
+                    <div id="users-table-root">
+                        <!-- Table générée dynamiquement ici -->
+                    </div>
+                </div>
+                <div id="users-empty-message" style="display:none;text-align:center;color:#888;margin-top:20px;">Aucun utilisateur trouvé.</div>
             </div>
         </div>
     </div>

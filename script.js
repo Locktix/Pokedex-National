@@ -36,6 +36,10 @@ let searchTimeout = null;
 let selectedResultIndex = -1;
 let currentSearchResults = [];
 
+// ===== GESTION UTILISATEURS RELOOKÉE =====
+let allUsersList = [];
+let filteredUsersList = [];
+
 // Fonction pour récupérer tous les noms de Pokémon en français depuis PokéAPI
 async function fetchFrenchPokemonNames() {
     console.log('[PokéAPI] Début du chargement de la liste des espèces...');
@@ -518,7 +522,7 @@ async function loadPokemonImage(card, pokemonNumber) {
                 bottom: 0;
                 background: ${isCaptured 
                     ? 'linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.1) 50%, rgba(78, 205, 196, 0.4) 100%)'
-                    : 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.08) 100%)'
                 };
                 pointer-events: none;
                 z-index: 1;
@@ -551,7 +555,7 @@ async function loadPokemonImage(card, pokemonNumber) {
                     bottom: 0;
                     background: ${isCaptured 
                         ? 'linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.1) 50%, rgba(78, 205, 196, 0.4) 100%)'
-                        : 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%)'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.08) 100%)'
                     };
                     pointer-events: none;
                     z-index: 1;
@@ -609,7 +613,7 @@ function updatePokemonCard(pokemonNumber) {
             if (isCaptured) {
                 overlay.style.background = 'linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.1) 50%, rgba(78, 205, 196, 0.4) 100%)';
             } else {
-                overlay.style.background = 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%)';
+                overlay.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.08) 100%)';
             }
         }
         
@@ -807,6 +811,14 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM chargé, initialisation de l\'application...');
     init();
+    // Attacher le listener sur le bouton "Gérer les utilisateurs" après que le DOM soit prêt
+    const manageUsersBtn = document.getElementById('manage-users');
+    if (manageUsersBtn) {
+        manageUsersBtn.addEventListener('click', showUsersManagement);
+        console.log('[ADMIN] Listener attaché sur #manage-users');
+    } else {
+        console.warn('[ADMIN] Bouton #manage-users introuvable dans le DOM');
+    }
 });
 
 // Empêcher le rechargement de la page lors de la soumission des formulaires
@@ -1334,77 +1346,111 @@ async function showUsersManagement() {
         showNotification('Accès refusé', 'error');
         return;
     }
-    
     const usersModal = document.getElementById('users-modal');
-    const usersContent = document.getElementById('users-content');
-    
-    usersContent.innerHTML = '<p>Chargement des utilisateurs...</p>';
+    const usersTableRoot = document.getElementById('users-table-root');
+    const usersEmptyMsg = document.getElementById('users-empty-message');
+    const searchInput = document.getElementById('users-search-input');
+    // Sécurité : vérifie que tous les éléments existent
+    if (!usersModal || !usersTableRoot || !usersEmptyMsg || !searchInput) {
+        alert("Erreur critique : certains éléments de la modale utilisateurs sont manquants dans le DOM.\nVérifiez le HTML et rechargez la page.");
+        return;
+    }
+    usersTableRoot.innerHTML = '<p style="text-align:center;color:#667eea;">Chargement des utilisateurs...</p>';
+    usersEmptyMsg.style.display = 'none';
     usersModal.style.display = 'flex';
-    
     try {
         const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
         const usersSnapshot = await getDocs(collection(window.db, 'users'));
-        
-        let usersTable = `
-            <table class="users-table">
-                <thead>
-                    <tr>
-                        <th>Utilisateur</th>
-                        <th>Email</th>
-                        <th>Rôle</th>
-                        <th>Pokémon capturés</th>
-                        <th>Complétion</th>
-                        <th>Dernière activité</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
+        allUsersList = [];
         usersSnapshot.forEach(doc => {
             const userData = doc.data();
-            const capturedCount = userData.capturedPokemon ? userData.capturedPokemon.length : 0;
-            const completion = ((capturedCount / TOTAL_POKEMON) * 100).toFixed(1);
-            const lastActivity = userData.lastSaved ? new Date(userData.lastSaved.toDate()).toLocaleDateString('fr-FR') : 'Jamais';
-            const currentRole = userData.role || 'member';
-            
-            usersTable += `
-                <tr data-uid="${doc.id}">
-                    <td>${userData.username || 'N/A'}</td>
-                    <td>${userData.email || 'N/A'}</td>
-                    <td>
-                        <span class="role-badge ${currentRole}">${currentRole}</span>
-                        <div class="role-selector-inline">
-                            <select class="role-select" data-uid="${doc.id}" data-current-role="${currentRole}">
-                                <option value="member" ${currentRole === 'member' ? 'selected' : ''}>Membre</option>
-                                <option value="tester" ${currentRole === 'tester' ? 'selected' : ''}>Testeur</option>
-                                <option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>Admin</option>
-                            </select>
-                            <button class="update-role-btn" data-uid="${doc.id}" style="display: none;">✓</button>
-                        </div>
-                    </td>
-                    <td>${capturedCount}</td>
-                    <td>${completion}%</td>
-                    <td>${lastActivity}</td>
-                    <td>
-                        <button class="admin-btn danger small" onclick="resetUserProgressById('${doc.id}')" title="Réinitialiser progression">
-                            🔄
-                        </button>
-                    </td>
-                </tr>
-            `;
+            allUsersList.push({
+                uid: doc.id,
+                username: userData.username || '',
+                email: userData.email || '',
+                role: userData.role || 'member',
+                capturedCount: userData.capturedPokemon ? userData.capturedPokemon.length : 0,
+                completion: ((userData.capturedPokemon ? userData.capturedPokemon.length : 0) / TOTAL_POKEMON * 100).toFixed(1),
+                lastActivity: userData.lastSaved ? new Date(userData.lastSaved.toDate()).toLocaleDateString('fr-FR') : 'Jamais'
+            });
         });
-        
-        usersTable += '</tbody></table>';
-        usersContent.innerHTML = usersTable;
-        
-        // Ajouter les event listeners pour les sélecteurs de rôle
-        setupRoleSelectors();
-        
+        filteredUsersList = [...allUsersList];
+        renderUsersTable(filteredUsersList);
+        // Event listener recherche
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.oninput = function() {
+                filterUsersTable(this.value);
+            };
+        }
     } catch (error) {
         console.error('Erreur lors du chargement des utilisateurs:', error);
-        usersContent.innerHTML = '<p>Erreur lors du chargement des utilisateurs</p>';
+        usersTableRoot.innerHTML = '<p style="color:red;text-align:center;">Erreur lors du chargement des utilisateurs</p>';
     }
+}
+
+function filterUsersTable(query) {
+    const usersTableRoot = document.getElementById('users-table-root');
+    const usersEmptyMsg = document.getElementById('users-empty-message');
+    query = (query || '').toLowerCase();
+    filteredUsersList = allUsersList.filter(u =>
+        u.username.toLowerCase().includes(query) ||
+        u.email.toLowerCase().includes(query) ||
+        u.role.toLowerCase().includes(query)
+    );
+    renderUsersTable(filteredUsersList);
+    if (filteredUsersList.length === 0) {
+        usersEmptyMsg.style.display = 'block';
+    } else {
+        usersEmptyMsg.style.display = 'none';
+    }
+}
+
+function renderUsersTable(users) {
+    const usersTableRoot = document.getElementById('users-table-root');
+    if (!users || users.length === 0) {
+        usersTableRoot.innerHTML = '';
+        return;
+    }
+    let html = `<table class="users-table">
+        <thead>
+            <tr>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Pokémon capturés</th>
+                <th>Complétion</th>
+                <th>Dernière activité</th>
+                <th class="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    users.forEach(user => {
+        html += `<tr data-uid="${user.uid}">
+            <td>${user.username || 'N/A'}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td>
+                <span class="role-badge ${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
+                <div class="role-selector-inline">
+                    <select class="role-select" data-uid="${user.uid}" data-current-role="${user.role}">
+                        <option value="member" ${user.role === 'member' ? 'selected' : ''}>Membre</option>
+                        <option value="tester" ${user.role === 'tester' ? 'selected' : ''}>Testeur</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                    <button class="update-role-btn" data-uid="${user.uid}" style="display:none;">✓</button>
+                </div>
+            </td>
+            <td>${user.capturedCount}</td>
+            <td>${user.completion}%</td>
+            <td>${user.lastActivity}</td>
+            <td class="actions">
+                <button class="admin-btn danger small" onclick="resetUserProgressById('${user.uid}')" title="Réinitialiser progression">🔄</button>
+            </td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    usersTableRoot.innerHTML = html;
+    setupRoleSelectors();
 }
 
 // Réinitialiser la progression d'un utilisateur
