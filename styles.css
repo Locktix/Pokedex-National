@@ -945,27 +945,110 @@ footer {
     background: linear-gradient(135deg, #ff6b6b, #ee5a52);
 }
 
-.toolbar-filters {
+.toolbar-controls {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
-.filter-btn {
+/* Dropdown des filtres */
+.filter-dropdown {
+    position: relative;
+    min-width: 180px;
+}
+
+.filter-dropdown-btn {
     background: #fff;
     color: #667eea;
     border: 1.5px solid #667eea;
-    border-radius: 20px;
-    padding: 7px 18px;
-    font-size: 1rem;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, border 0.2s;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 2px 8px rgba(102,126,234,0.08);
 }
-.filter-btn.active,
-.filter-btn:focus {
-    background: linear-gradient(90deg, #667eea 60%, #4ecdc4 100%);
+
+.filter-dropdown-btn:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: #fff;
-    border-color: #4ecdc4;
+    border-color: #667eea;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.2);
+}
+
+.filter-dropdown-btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border-color: #667eea;
+}
+
+.dropdown-arrow {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.filter-dropdown-btn.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.filter-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 1px solid #e0e0e0;
+    z-index: 1000;
+    margin-top: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.filter-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.filter-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-option:last-child {
+    border-bottom: none;
+}
+
+.filter-option:hover {
+    background: linear-gradient(135deg, #f8f9ff, #f0f2ff);
+    transform: translateX(4px);
+}
+
+.filter-option.selected {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.filter-text {
+    font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .toolbar-pagination {
@@ -1043,6 +1126,48 @@ footer {
     }
     
     .search-result-name {
+        font-size: 0.9rem;
+    }
+    
+    .main-toolbar {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+    
+    .toolbar-controls {
+        width: 100%;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    
+    .filter-dropdown {
+        min-width: 140px;
+    }
+    
+    .filter-dropdown-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .toolbar-pagination {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .page-info {
+        font-size: 0.9rem;
+        padding: 4px 10px;
+    }
+    
+    .nav-btn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .goto-input {
+        width: 45px;
+        padding: 4px 6px;
         font-size: 0.9rem;
     }
 }
@@ -1737,6 +1862,40 @@ footer {
 }
 
 /* Dark mode pour les nouveaux éléments */
+.dark-mode .filter-dropdown-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark-mode .filter-dropdown-btn:hover {
+    background: rgba(102, 126, 234, 0.3) !important;
+}
+
+.dark-mode .filter-dropdown-btn.active {
+    background: #667eea !important;
+    color: #fff !important;
+}
+
+.dark-mode .filter-dropdown-menu {
+    background: rgba(26, 26, 46, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark-mode .filter-option {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #e0e0e0 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .filter-option:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .filter-option.selected {
+    background: rgba(102, 126, 234, 0.3) !important;
+}
+
 .dark-mode .role-select {
     background: #2d3748;
     border-color: #4a5568;
