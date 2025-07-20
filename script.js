@@ -1119,7 +1119,7 @@ function goToPokemon(pokemonNumber) {
 // Afficher un message de bienvenue
 window.addEventListener('load', () => {
     setTimeout(() => {
-        showNotification('Bienvenue dans le Pokédex Challenge ! 🎮', 'info');
+        showNotification('Bienvenue dans le Pokédex National ! 🎮', 'info');
     }, 1000);
 });
 

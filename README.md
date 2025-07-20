@@ -1,4 +1,4 @@
-# 🎮 Pokédex Challenge
+# 🎮 Pokédex National
 
 Une application web interactive pour capturer et collectionner tous les Pokémon de la génération 1 à 9 (1025 Pokémon au total).
 
@@ -89,7 +89,7 @@ Vos données sont automatiquement sauvegardées dans le localStorage de votre na
 ## 📁 Structure des fichiers
 
 ```
-Pokédex-Challenge/
+Pokédex-National/
 ├── index.html          # Page principale
 ├── styles.css          # Styles CSS
 ├── script.js           # Logique JavaScript
@@ -97,41 +97,3 @@ Pokédex-Challenge/
 ├── server.py           # Serveur local Python
 └── README.md           # Ce fichier
 ```
-
-## 🔧 Personnalisation
-
-Vous pouvez facilement personnaliser l'application en modifiant :
-- Les couleurs dans `styles.css`
-- Les animations et effets visuels
-- Le nombre de Pokémon par page (actuellement 16)
-- Les raccourcis clavier dans `script.js`
-
-## 🎨 Design
-
-L'application utilise un design moderne avec :
-- Dégradés de couleurs
-- Animations fluides
-- Interface intuitive
-- Design responsive
-- Thème Pokémon avec des couleurs vives
-
-## 📊 Statistiques
-
-L'application affiche en temps réel :
-- **Nombre de Pokémon capturés**
-- **Pourcentage de complétion**
-- **Nombre de Pokémon restants**
-
-## 🎉 Bonne chance !
-
-Que la chance soit avec vous dans votre quête pour compléter votre Pokédex ! 🎮✨
-
----
-
-## 📄 Licence et crédits
-
-Ce projet est créé à des fins éducatives et de divertissement. Tous les noms de Pokémon sont la propriété de Nintendo/Game Freak/The Pokémon Company.
-
-**Développé avec ❤️ par Locktix.**
-
-*Dernière mise à jour : 2025* 

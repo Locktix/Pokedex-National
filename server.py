@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Serveur HTTP simple pour le Pokédex Challenge
+Serveur HTTP simple pour le Pokédex National
 Lancez ce script et ouvrez http://localhost:8000 dans votre navigateur
 """
 
