@@ -1628,206 +1628,32 @@ footer {
     overflow-y: auto;
 }
 
+.users-table-container {
+    max-width: 100%;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
 .users-table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+    max-width: 100%;
+    min-width: 240px;
+    table-layout: fixed;
 }
 
 .users-table th,
 .users-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.users-table th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #333;
-}
-
-.users-table tr:hover {
-    background: #f8f9fa;
-}
-
-/* Sélecteurs de rôle inline */
-.role-selector-inline {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 5px;
-}
-
-.role-select {
-    padding: 4px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    background: white;
-    cursor: pointer;
-}
-
-.role-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
-}
-
-.update-role-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.update-role-btn:hover {
-    background: #218838;
-    transform: scale(1.05);
-}
-
-/* Boutons admin petits */
-.admin-btn.small {
-    padding: 4px 8px;
-    font-size: 0.9rem;
-    margin: 0;
-    min-width: 32px;
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Écran de maintenance */
-#maintenance-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.maintenance-container {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 60px 40px;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    text-align: center;
-    max-width: 500px;
-    width: 90%;
-}
-
-.maintenance-content h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.maintenance-content p {
-    font-size: 1.1rem;
-    color: #666;
-    margin-bottom: 15px;
-    line-height: 1.6;
-}
-
-.maintenance-info {
-    background: rgba(102, 126, 234, 0.1);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 30px 0;
-}
-
-.maintenance-info p {
-    color: #667eea;
-    font-weight: 600;
-    margin: 0;
-}
-
-.maintenance-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 10px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 20px;
-}
-
-.maintenance-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-}
-
-/* --- MODALE GESTION UTILISATEURS RELOOKÉE --- */
-.users-search-bar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    margin-bottom: 18px;
-    position: relative;
-    max-width: 350px;
-    margin-left: auto;
-}
-.users-search-bar input {
-    width: 100%;
-    padding: 10px 36px 10px 14px;
-    border: 1.5px solid #667eea;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-family: 'Poppins', sans-serif;
-    transition: border 0.2s, box-shadow 0.2s;
-    background: #fff;
-    color: #222;
-}
-.users-search-bar input:focus {
-    outline: none;
-    border: 2px solid #764ba2;
-    box-shadow: 0 0 0 2px rgba(118,75,162,0.08);
-}
-.users-search-icon {
-    position: absolute;
-    right: 12px;
-    font-size: 1.2rem;
-    color: #667eea;
-    pointer-events: none;
-}
-.users-table-container {
-    overflow-x: auto;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-}
-.users-table {
-    width: 100%;
-    min-width: 900px;
-    border-collapse: collapse;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(102,126,234,0.07);
+    padding: 6px 4px;
+    white-space: nowrap;
+    font-size: 14px;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
-.users-table th, .users-table td {
-    padding: 12px 10px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-    vertical-align: middle;
-}
+
 .users-table th {
     background: #f8f9fa;
     font-weight: 700;
@@ -1836,11 +1662,34 @@ footer {
     top: 0;
     z-index: 2;
 }
-.users-table th.actions, .users-table td.actions {
-    width: 70px;
-    min-width: 70px;
+
+.users-table th.actions,
+.users-table td.actions {
+    min-width: 60px;
     text-align: center;
-    padding: 0 6px;
+}
+
+.users-table th:nth-child(1),
+.users-table td:nth-child(1) { /* Utilisateur */
+    max-width: 60px;
+    width: 60px;
+}
+.users-table th:nth-child(2),
+.users-table td:nth-child(2) { /* Rôle */
+    max-width: 60px;
+    width: 60px;
+}
+.users-table th:nth-child(3),
+.users-table td:nth-child(3) { /* Dernière activité */
+    max-width: 70px;
+    width: 70px;
+    white-space: normal;
+    text-align: center;
+}
+.users-table th:nth-child(4),
+.users-table td:nth-child(4) { /* Actions */
+    max-width: 60px;
+    width: 60px;
 }
 .users-table tr:hover {
     background: #f3f6fd;
@@ -1891,10 +1740,37 @@ footer {
         padding: 0;
     }
     .users-table {
-        min-width: 500px;
+        min-width: 280px;
         font-size: 0.92rem;
     }
     .users-search-bar {
         max-width: 100%;
     }
+}
+
+.collection-stats-badges {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin: 10px 0 6px 0;
+}
+.collection-stats-badges span {
+    display: inline-block;
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 6px 16px;
+    font-size: 1.13rem;
+    font-weight: 600;
+    color: #333;
+    box-shadow: 0 1px 4px rgba(102,126,234,0.07);
+    letter-spacing: 0.01em;
+}
+.collection-stats-badges span.captured {
+    background: #e6fcf5;
+    color: #22b8cf;
+}
+.collection-stats-badges span.completion {
+    background: #f3e8ff;
+    color: #764ba2;
 }

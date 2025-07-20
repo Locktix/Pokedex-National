@@ -1418,7 +1418,6 @@ function filterUsersTable(query) {
     query = (query || '').toLowerCase();
     filteredUsersList = allUsersList.filter(u =>
         u.username.toLowerCase().includes(query) ||
-        u.email.toLowerCase().includes(query) ||
         u.role.toLowerCase().includes(query)
     );
     renderUsersTable(filteredUsersList);
@@ -1439,19 +1438,21 @@ function renderUsersTable(users) {
         <thead>
             <tr>
                 <th>Utilisateur</th>
-                <th>Email</th>
                 <th>Rôle</th>
-                <th>Pokémon capturés</th>
-                <th>Complétion</th>
                 <th>Dernière activité</th>
                 <th class="actions">Actions</th>
             </tr>
         </thead>
         <tbody>`;
     users.forEach(user => {
+        let dateStr = user.lastActivity;
+        if (dateStr && dateStr.length === 10 && dateStr.includes('/')) {
+            // Format attendu : JJ/MM/AAAA
+            const [jour, mois, annee] = dateStr.split('/');
+            dateStr = `<span>${jour}/${mois}</span><br><span style='font-size:12px;color:#888;'>${annee}</span>`;
+        }
         html += `<tr data-uid="${user.uid}">
-            <td>${user.username || 'N/A'}</td>
-            <td>${user.email || 'N/A'}</td>
+            <td><span title="${user.email || ''}">${user.username || 'N/A'}</span></td>
             <td>
                 <span class="role-badge ${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
                 <div class="role-selector-inline">
@@ -1463,11 +1464,9 @@ function renderUsersTable(users) {
                     <button class="update-role-btn" data-uid="${user.uid}" style="display:none;">✓</button>
                 </div>
             </td>
-            <td>${user.capturedCount}</td>
-            <td>${user.completion}%</td>
-            <td>${user.lastActivity}</td>
+            <td>${dateStr}</td>
             <td class="actions">
-                <button class="admin-btn info small" onclick="showUserCollectionModal('${user.uid}', '${user.username.replace(/'/g, "&#39;")}')" title="Voir la collection">🃏</button>
+                <button class="admin-btn info small" onclick="showUserCollectionModal('${user.uid}', '${user.username.replace(/'/g, "&#39;")}', ${user.capturedCount || 0}, '${user.completion || '0'}')" title="Voir la collection">🃏</button>
                 <button class="admin-btn danger small" onclick="resetUserProgressById('${user.uid}')" title="Réinitialiser progression">🔄</button>
             </td>
         </tr>`;
@@ -1478,13 +1477,15 @@ function renderUsersTable(users) {
 }
 
 // Afficher la collection d'un utilisateur dans un modal (admin)
-window.showUserCollectionModal = async function(uid, username) {
+window.showUserCollectionModal = async function(uid, username, capturedCount, completion) {
     const modal = document.getElementById('user-collection-modal');
     const grid = document.getElementById('user-collection-grid');
     const emptyMsg = document.getElementById('user-collection-empty');
     const nameSpan = document.getElementById('collection-username');
-    if (!modal || !grid || !emptyMsg || !nameSpan) return;
+    const statsSpan = document.getElementById('collection-stats');
+    if (!modal || !grid || !emptyMsg || !nameSpan || !statsSpan) return;
     nameSpan.textContent = username || uid;
+    statsSpan.innerHTML = `<span class='captured'>${capturedCount || 0} capturés</span><span class='completion'>${completion || '0'}% complétion</span>`;
     grid.innerHTML = '<p style="text-align:center;color:#667eea;">Chargement de la collection...</p>';
     emptyMsg.style.display = 'none';
     modal.style.display = 'flex';
@@ -1499,7 +1500,6 @@ window.showUserCollectionModal = async function(uid, username) {
                 grid.innerHTML = '';
                 emptyMsg.style.display = 'block';
             } else {
-                // Afficher la grille de Pokémon capturés avec images comme la grille principale
                 grid.innerHTML = '';
                 captured.forEach(num => {
                     const poke = window.pokemonList ? window.pokemonList[num-1] : {name: `#${num}`};
@@ -1510,7 +1510,6 @@ window.showUserCollectionModal = async function(uid, username) {
                         <div class="pokemon-number">#${num.toString().padStart(3, '0')}</div>
                         <div class="pokemon-name">${poke ? poke.name : ''}</div>
                     `;
-                    // Charger l'image de fond comme dans la grille principale
                     if (typeof loadPokemonImage === 'function') {
                         loadPokemonImage(card, num);
                     }
