@@ -182,6 +182,20 @@
         </div>
     </div>
 
+    <!-- Modal de collection d'utilisateur (admin) -->
+    <div id="user-collection-modal" class="modal" style="display: none;">
+        <div class="modal-content user-collection-modal" style="max-width:800px;max-height:90vh;overflow:auto;">
+            <div class="modal-header">
+                <h3>🃏 Collection de <span id="collection-username"></span></h3>
+                <button id="close-collection" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="user-collection-grid" class="pokemon-grid" style="max-height:65vh;overflow-y:auto;"></div>
+                <div id="user-collection-empty" style="display:none;text-align:center;color:#888;margin-top:20px;">Aucun Pokémon capturé.</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         // Import the functions you need from the SDKs you need

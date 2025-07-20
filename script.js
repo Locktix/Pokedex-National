@@ -1467,6 +1467,7 @@ function renderUsersTable(users) {
             <td>${user.completion}%</td>
             <td>${user.lastActivity}</td>
             <td class="actions">
+                <button class="admin-btn info small" onclick="showUserCollectionModal('${user.uid}', '${user.username.replace(/'/g, "&#39;")}')" title="Voir la collection">🃏</button>
                 <button class="admin-btn danger small" onclick="resetUserProgressById('${user.uid}')" title="Réinitialiser progression">🔄</button>
             </td>
         </tr>`;
@@ -1474,6 +1475,65 @@ function renderUsersTable(users) {
     html += '</tbody></table>';
     usersTableRoot.innerHTML = html;
     setupRoleSelectors();
+}
+
+// Afficher la collection d'un utilisateur dans un modal (admin)
+window.showUserCollectionModal = async function(uid, username) {
+    const modal = document.getElementById('user-collection-modal');
+    const grid = document.getElementById('user-collection-grid');
+    const emptyMsg = document.getElementById('user-collection-empty');
+    const nameSpan = document.getElementById('collection-username');
+    if (!modal || !grid || !emptyMsg || !nameSpan) return;
+    nameSpan.textContent = username || uid;
+    grid.innerHTML = '<p style="text-align:center;color:#667eea;">Chargement de la collection...</p>';
+    emptyMsg.style.display = 'none';
+    modal.style.display = 'flex';
+    try {
+        const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const userDoc = await getDoc(doc(window.db, 'users', uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const captured = userData.capturedPokemon || [];
+            captured.sort((a, b) => a - b);
+            if (captured.length === 0) {
+                grid.innerHTML = '';
+                emptyMsg.style.display = 'block';
+            } else {
+                // Afficher la grille de Pokémon capturés avec images comme la grille principale
+                grid.innerHTML = '';
+                captured.forEach(num => {
+                    const poke = window.pokemonList ? window.pokemonList[num-1] : {name: `#${num}`};
+                    const card = document.createElement('div');
+                    card.className = 'pokemon-card captured';
+                    card.dataset.pokemonNumber = num;
+                    card.innerHTML = `
+                        <div class="pokemon-number">#${num.toString().padStart(3, '0')}</div>
+                        <div class="pokemon-name">${poke ? poke.name : ''}</div>
+                    `;
+                    // Charger l'image de fond comme dans la grille principale
+                    if (typeof loadPokemonImage === 'function') {
+                        loadPokemonImage(card, num);
+                    }
+                    grid.appendChild(card);
+                });
+                emptyMsg.style.display = 'none';
+            }
+        } else {
+            grid.innerHTML = '';
+            emptyMsg.style.display = 'block';
+        }
+    } catch (e) {
+        grid.innerHTML = '<p style="color:red;text-align:center;">Erreur lors du chargement</p>';
+        emptyMsg.style.display = 'none';
+    }
+};
+
+// Fermer le modal de collection
+const closeCollectionBtn = document.getElementById('close-collection');
+if (closeCollectionBtn) {
+    closeCollectionBtn.addEventListener('click', () => {
+        document.getElementById('user-collection-modal').style.display = 'none';
+    });
 }
 
 // Réinitialiser la progression d'un utilisateur
@@ -1758,8 +1818,4 @@ function updateGridSize() {
     }
     
     showNotification(`Grille mise à jour : ${newSize} Pokémon par page`, 'success');
-}
-
-// Rendre les fonctions disponibles globalement
-window.changeUserRole = changeUserRole;
-window.resetUserProgressById = resetUserProgressById; 
+} 
