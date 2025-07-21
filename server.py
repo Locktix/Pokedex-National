@@ -11,7 +11,7 @@ import webbrowser
 from pathlib import Path
 
 # Configuration
-PORT = 8000
+PORT = 1111
 DIRECTORY = Path(__file__).parent
 
 class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):

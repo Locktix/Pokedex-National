@@ -402,7 +402,7 @@ h1 {
 
 .search-result-name {
     font-weight: 500;
-    color: #333;
+    color: #222 !important;
     font-size: 1rem;
 }
 
