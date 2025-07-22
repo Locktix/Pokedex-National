@@ -40,6 +40,46 @@ let currentSearchResults = [];
 let allUsersList = [];
 let filteredUsersList = [];
 
+// Ajout : gestion du sélecteur de taille de grille
+const gridSizeSelect = document.getElementById('grid-size-select');
+const pokemonGridElem = document.getElementById('pokemon-grid');
+function updateGridColumns(size) {
+    if (!pokemonGridElem) return;
+    let cols = 4;
+    if (size === 9) cols = 3;
+    if (size === 4) cols = 2;
+    pokemonGridElem.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+}
+if (gridSizeSelect) {
+    // Charger la préférence depuis le localStorage
+    const savedGridSize = localStorage.getItem('gridSize');
+    let initialSize = 16;
+    if (savedGridSize && (savedGridSize === '16' || savedGridSize === '9' || savedGridSize === '4')) {
+        gridSizeSelect.value = savedGridSize;
+        initialSize = parseInt(savedGridSize, 10);
+        POKEMON_PER_PAGE = initialSize;
+        TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
+    }
+    updateGridColumns(initialSize);
+    gridSizeSelect.addEventListener('change', function() {
+        const newSize = parseInt(this.value, 10);
+        if ([16,9,4].includes(newSize)) {
+            POKEMON_PER_PAGE = newSize;
+            TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
+            currentPage = 1;
+            localStorage.setItem('gridSize', newSize);
+            updateGridColumns(newSize);
+            displayCurrentPage();
+            updateStats();
+            // Mettre à jour le texte de pagination
+            const pageInfo = document.querySelector('.page-info');
+            if (pageInfo) {
+                pageInfo.textContent = `Page ${currentPage} / ${TOTAL_PAGES}`;
+            }
+        }
+    });
+}
+
 // Fonction pour récupérer tous les noms de Pokémon en français depuis PokéAPI
 async function fetchFrenchPokemonNames() {
     console.log('[PokéAPI] Début du chargement de la liste des espèces...');
@@ -425,6 +465,10 @@ function setupEventListeners() {
 
 // Afficher la page courante
 function displayCurrentPage() {
+    // Toujours mettre à jour le nombre de colonnes selon la taille de grille
+    if (typeof updateGridColumns === 'function') {
+        updateGridColumns(POKEMON_PER_PAGE);
+    }
     // Si filtre capturé, afficher tous les capturés sur une seule page
     if (currentFilter === 'captured') {
         currentPageElement.textContent = 1;

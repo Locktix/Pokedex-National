@@ -752,3 +752,33 @@
 .dark-mode .settings-section h4 {
     color: #fff !important;
 }
+
+/* === Sélecteur de taille de grille (dark mode) === */
+.dark-mode .grid-size-selector {
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 12px;
+    padding: 6px 14px;
+    box-shadow: 0 1px 4px rgba(102,126,234,0.13);
+    color: #e0e0e0;
+}
+.dark-mode #grid-size-select {
+    border: 1.5px solid #4ecdc4;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 1rem;
+    background: #23234a;
+    color: #4ecdc4;
+    font-family: 'Poppins', sans-serif;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+    cursor: pointer;
+}
+.dark-mode #grid-size-select:focus {
+    border: 2px solid #667eea;
+    box-shadow: 0 0 0 2px rgba(102,126,234,0.10);
+}
+.dark-mode .grid-size-selector label {
+    color: #4ecdc4;
+    font-weight: 600;
+    font-size: 0.97rem;
+}
