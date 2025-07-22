@@ -46,9 +46,13 @@ const pokemonGridElem = document.getElementById('pokemon-grid');
 function updateGridColumns(size) {
     if (!pokemonGridElem) return;
     let cols = 4;
-    if (size === 9) cols = 3;
-    if (size === 4) cols = 2;
+    let label = '4 x 4';
+    if (size === 9) { cols = 3; label = '3 x 3'; }
+    if (size === 4) { cols = 2; label = '2 x 2'; }
     pokemonGridElem.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    // Mettre à jour l'affichage de la taille de la grille
+    const gridSizeLabel = document.getElementById('grid-size-label');
+    if (gridSizeLabel) gridSizeLabel.textContent = label;
 }
 if (gridSizeSelect) {
     // Charger la préférence depuis le localStorage
