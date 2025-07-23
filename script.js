@@ -464,7 +464,7 @@ function setupEventListeners() {
     // Event listeners pour les filtres
     showAllBtn.addEventListener('click', () => setFilter('all'));
     showCapturedBtn.addEventListener('click', () => setFilter('captured'));
-    showMissingBtn.addEventListener('click', () => setFilter('missing'));
+    // showMissingBtn supprimé
 }
 
 // Afficher la page courante
@@ -624,19 +624,17 @@ async function loadPokemonImage(card, pokemonNumber) {
 // Basculer la capture d'un Pokémon
 async function togglePokemonCapture(pokemonNumber) {
     const wasCaptured = capturedPokemon.has(pokemonNumber);
-    
     if (wasCaptured) {
-        capturedPokemon.delete(pokemonNumber);
-        console.log(`[CAPTURE] Pokémon #${pokemonNumber} relâché`);
+        // Afficher une confirmation avant de retirer
+        showRemovePokemonConfirm(pokemonNumber);
+        return;
     } else {
         capturedPokemon.add(pokemonNumber);
         console.log(`[CAPTURE] Pokémon #${pokemonNumber} capturé`);
     }
-    
     // Mettre à jour seulement la carte concernée
     updatePokemonCard(pokemonNumber);
     updateStats();
-    
     // SAUVEGARDE IMMÉDIATE DANS FIREBASE
     try {
         await saveUserDataImmediate();
@@ -646,6 +644,49 @@ async function togglePokemonCapture(pokemonNumber) {
         // Fallback vers la sauvegarde normale
         saveUserData();
     }
+}
+
+// Overlay de confirmation pour retirer un Pokémon capturé
+function showRemovePokemonConfirm(pokemonNumber) {
+    // Vérifier si un overlay existe déjà
+    let overlay = document.getElementById('remove-pokemon-overlay');
+    if (overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.id = 'remove-pokemon-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    overlay.innerHTML = `
+        <div style="background: white; color: #333; border-radius: 18px; padding: 36px 32px; box-shadow: 0 8px 32px rgba(102,126,234,0.18); text-align: center; min-width: 320px; max-width: 90vw;">
+            <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 18px;">Retirer ce Pokémon ?</div>
+            <div style="margin-bottom: 22px;">Voulez-vous retirer ce Pokémon de votre collection ?</div>
+            <div style="display: flex; gap: 18px; justify-content: center;">
+                <button id="remove-pokemon-yes" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1rem; font-weight: 600; cursor: pointer;">Oui</button>
+                <button id="remove-pokemon-no" style="background: #eee; color: #333; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1rem; font-weight: 600; cursor: pointer;">Non</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('remove-pokemon-yes').onclick = async function() {
+        capturedPokemon.delete(pokemonNumber);
+        updatePokemonCard(pokemonNumber);
+        updateStats();
+        try {
+            await saveUserDataImmediate();
+        } catch (error) {
+            saveUserData();
+        }
+        overlay.remove();
+    };
+    document.getElementById('remove-pokemon-no').onclick = function() {
+        overlay.remove();
+    };
 }
 
 // Mettre à jour une carte Pokémon spécifique sans recharger les images
@@ -907,7 +948,6 @@ function setFilter(filter) {
     currentFilter = filter;
     showAllBtn.classList.toggle('active', filter === 'all');
     showCapturedBtn.classList.toggle('active', filter === 'captured');
-    showMissingBtn.classList.toggle('active', filter === 'missing');
     displayCurrentPage();
     updateStats();
     saveUserData();
@@ -927,11 +967,6 @@ function applyCurrentFilter() {
         switch (currentFilter) {
             case 'captured':
                 if (!isCaptured) {
-                    card.classList.add('hidden');
-                }
-                break;
-            case 'missing':
-                if (isCaptured) {
                     card.classList.add('hidden');
                 }
                 break;
