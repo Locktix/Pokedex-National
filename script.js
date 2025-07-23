@@ -15,6 +15,9 @@ let userRole = 'member'; // 'member', 'tester', 'admin'
 let allUsers = [];
 let isDarkMode = false;
 
+// Ajout : mémoriser la page courante pour chaque filtre
+let pageByFilter = { all: 1, captured: 1 };
+
 // Éléments DOM
 const pokemonGrid = document.getElementById('pokemon-grid');
 const currentPageElement = document.getElementById('current-page');
@@ -473,29 +476,32 @@ function displayCurrentPage() {
     if (typeof updateGridColumns === 'function') {
         updateGridColumns(POKEMON_PER_PAGE);
     }
-    // Si filtre capturé, afficher tous les capturés sur une seule page
+    let totalPages = TOTAL_PAGES;
     if (currentFilter === 'captured') {
-        currentPageElement.textContent = 1;
-        pokemonGrid.innerHTML = '';
         const capturedList = Array.from(capturedPokemon).sort((a, b) => a - b);
-        capturedList.forEach(pokemonNumber => {
+        totalPages = Math.max(1, Math.ceil(capturedList.length / POKEMON_PER_PAGE));
+        if (currentPage > totalPages) currentPage = totalPages;
+        currentPageElement.textContent = currentPage;
+        pokemonGrid.innerHTML = '';
+        const startIndex = (currentPage - 1) * POKEMON_PER_PAGE;
+        const endIndex = Math.min(startIndex + POKEMON_PER_PAGE, capturedList.length);
+        for (let i = startIndex; i < endIndex; i++) {
+            const pokemonNumber = capturedList[i];
             const pokemonName = pokemonList[pokemonNumber - 1];
             const card = createPokemonCard(pokemonNumber, pokemonName, true);
-            // Afficher la page d'origine
-            const page = Math.ceil(pokemonNumber / POKEMON_PER_PAGE);
-            const nameElem = card.querySelector('.pokemon-name');
-            if (nameElem) {
-                const pageInfo = document.createElement('div');
-                pageInfo.className = 'pokemon-page-info';
-                pageInfo.textContent = `Page ${page}`;
-                nameElem.after(pageInfo);
-            }
             pokemonGrid.appendChild(card);
-        });
-        updateNavigationButtons(true); // désactive les boutons
+        }
+        updateNavigationButtons(totalPages === 1);
+        // Mettre à jour le texte de pagination
+        const pageInfo = document.querySelector('.page-info');
+        if (pageInfo) {
+            pageInfo.textContent = `Page ${currentPage} / ${totalPages}`;
+        }
         return;
     }
-    // Sinon, comportement normal
+    // Sinon, comportement normal (tous)
+    totalPages = TOTAL_PAGES;
+    if (currentPage > totalPages) currentPage = totalPages;
     currentPageElement.textContent = currentPage;
     const startIndex = (currentPage - 1) * POKEMON_PER_PAGE;
     const endIndex = Math.min(startIndex + POKEMON_PER_PAGE, TOTAL_POKEMON);
@@ -508,7 +514,12 @@ function displayCurrentPage() {
         pokemonGrid.appendChild(pokemonCard);
     }
     applyCurrentFilter();
-    updateNavigationButtons();
+    updateNavigationButtons(totalPages === 1);
+    // Mettre à jour le texte de pagination
+    const pageInfo = document.querySelector('.page-info');
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${currentPage} / ${totalPages}`;
+    }
 }
 
 // Créer une carte Pokémon
@@ -945,7 +956,11 @@ setInterval(saveUserData, 30000);
 
 // Fonctions de filtrage
 function setFilter(filter) {
+    // Sauvegarder la page courante pour le filtre précédent
+    pageByFilter[currentFilter] = currentPage;
     currentFilter = filter;
+    // Restaurer la page du filtre sélectionné, ou 1 si jamais visitée
+    currentPage = pageByFilter[filter] || 1;
     showAllBtn.classList.toggle('active', filter === 'all');
     showCapturedBtn.classList.toggle('active', filter === 'captured');
     displayCurrentPage();
