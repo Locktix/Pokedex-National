@@ -98,7 +98,43 @@
             </div>
         </main>
         
-        <!-- Bloc supprimé : info taille de la grille -->
+        <!-- Bouton pour ouvrir la modale Pokédex National -->
+        <div style="text-align:center;margin:32px 0 0 0;">
+            <button id="open-pokedex-docs" style="padding:18px 36px;font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:14px;box-shadow:0 2px 8px rgba(102,126,234,0.10);cursor:pointer;transition:background 0.2s;">📄 Préparer son Pokédex National</button>
+        </div>
+
+        <!-- Overlay/Modale Pokédex National -->
+        <div id="pokedex-docs-modal" class="modal" style="display:none;z-index:2000;">
+            <div class="modal-content" style="max-width:520px;width:95%;margin:auto;background:white;border-radius:22px;padding:0;box-shadow:0 8px 32px rgba(102,126,234,0.18);">
+                <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:22px 28px 10px 28px;border-radius:22px 22px 0 0;background:linear-gradient(135deg,#667eea,#764ba2);color:white;">
+                    <h2 style="font-size:1.3rem;margin:0;">📄 Préparer son Pokédex National</h2>
+                    <button id="close-pokedex-docs" class="close-btn" style="background:rgba(255,255,255,0.18);border:none;color:white;padding:8px 14px;border-radius:8px;font-size:1.2rem;cursor:pointer;">✕</button>
+                </div>
+                <div class="modal-body" style="padding:28px 28px 18px 28px;text-align:center;">
+                    <p style="color:#444;margin-bottom:22px;">Téléchargez des outils pour organiser votre collection physique</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:center;margin-bottom:18px;">
+                        <a href="/assets/pokdex_complet.pdf" download="pokedex_national_liste.pdf" class="doc-btn" style="display:inline-block;padding:16px 28px;font-size:1.1rem;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:12px;text-decoration:none;box-shadow:0 2px 8px rgba(102,126,234,0.10);transition:background 0.2s;">⬇️ Télécharger la liste des Pokémon (PDF)</a>
+                        <button id="choose-binder-btn" class="doc-btn" style="display:inline-block;padding:16px 28px;font-size:1.1rem;font-weight:600;background:linear-gradient(135deg,#4ecdc4,#667eea);color:white;border-radius:12px;text-decoration:none;box-shadow:0 2px 8px rgba(102,126,234,0.10);transition:background 0.2s;cursor:pointer;border:none;">🛒 Choisir un classeur 4x4</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sous-modale pour choix du classeur -->
+        <div id="binder-choice-modal" class="modal" style="display:none;z-index:2100;">
+            <div class="modal-content" style="max-width:420px;width:95%;margin:auto;background:white;border-radius:20px;padding:0;box-shadow:0 8px 32px rgba(102,126,234,0.18);">
+                <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 8px 24px;border-radius:20px 20px 0 0;background:linear-gradient(135deg,#667eea,#764ba2);color:white;">
+                    <h3 style="font-size:1.1rem;margin:0;">🛒 Choisir un classeur 4x4</h3>
+                    <button id="close-binder-choice" class="close-btn" style="background:rgba(255,255,255,0.18);border:none;color:white;padding:6px 12px;border-radius:8px;font-size:1.1rem;cursor:pointer;">✕</button>
+                </div>
+                <div class="modal-body" style="padding:22px 22px 16px 22px;text-align:center;">
+                    <div style="margin-bottom:18px;color:#444;">Sélectionnez votre classeur préféré :</div>
+                    <a href="https://amzn.eu/d/fpM8c9d" target="_blank" rel="noopener" style="display:block;margin-bottom:16px;padding:14px 0;font-size:1.08rem;font-weight:600;background:linear-gradient(135deg,#ffb347,#ffcc33);color:#333;border-radius:10px;text-decoration:none;box-shadow:0 1px 4px rgba(102,126,234,0.07);">Amazon – Classeur premium (≈ 50-60€)</a>
+                    <a href="https://fr.aliexpress.com/item/1005009205993851.html" target="_blank" rel="noopener" style="display:block;margin-bottom:8px;padding:14px 0;font-size:1.08rem;font-weight:600;background:linear-gradient(135deg,#4ecdc4,#67eaa0);color:#222;border-radius:10px;text-decoration:none;box-shadow:0 1px 4px rgba(102,126,234,0.07);">AliExpress – Classeur économique (≈ 10-15€)</a>
+                    <div style="margin-top:10px;color:#888;font-size:0.97rem;">(Prix indicatifs, liens non sponsorisés)</div>
+                </div>
+            </div>
+        </div>
         
         <footer class="footer-minimal">
             <span>Pokédex National &copy; 2025 – par Locktix</span>
