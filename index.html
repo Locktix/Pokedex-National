@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokédex National</title>
     <link rel="stylesheet" href="theme-light.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Écran de chargement -->
@@ -20,109 +21,207 @@
     <!-- Interface d'authentification -->
     <div id="auth-container" class="auth-container" style="display: none;">
         <div class="auth-card">
-            <h2>🎮 Pokédex National</h2>
-            <p class="auth-subtitle">Connectez-vous pour sauvegarder votre progression</p>
+            <div class="auth-logo">
+                <div class="logo-icon">🎮</div>
+                <h2>Pokédex National</h2>
+                <p class="auth-subtitle">Connectez-vous pour sauvegarder votre progression</p>
+            </div>
             
             <form id="login-form" class="auth-form">
-                <input type="email" id="login-email" placeholder="Email" class="auth-input" autocomplete="email" required>
-                <input type="password" id="login-password" placeholder="Mot de passe" class="auth-input" autocomplete="current-password" required>
+                <div class="input-group">
+                    <input type="email" id="login-email" placeholder="Email" class="auth-input" autocomplete="email" required>
+                    <div class="input-icon">📧</div>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="login-password" placeholder="Mot de passe" class="auth-input" autocomplete="current-password" required>
+                    <div class="input-icon">🔒</div>
+                </div>
                 <button type="submit" id="login-btn" class="auth-btn primary">Se connecter</button>
                 <button type="button" id="show-register" class="auth-btn secondary">Créer un compte</button>
             </form>
             
             <form id="register-form" class="auth-form" style="display: none;">
-                <input type="text" id="register-username" placeholder="Nom d'utilisateur" class="auth-input" autocomplete="username" required>
-                <input type="email" id="register-email" placeholder="Email" class="auth-input" autocomplete="email" required>
-                <input type="password" id="register-password" placeholder="Mot de passe" class="auth-input" autocomplete="new-password" required>
+                <div class="input-group">
+                    <input type="text" id="register-username" placeholder="Nom d'utilisateur" class="auth-input" autocomplete="username" required>
+                    <div class="input-icon">👤</div>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="register-email" placeholder="Email" class="auth-input" autocomplete="email" required>
+                    <div class="input-icon">📧</div>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="register-password" placeholder="Mot de passe" class="auth-input" autocomplete="new-password" required>
+                    <div class="input-icon">🔒</div>
+                </div>
                 <button type="submit" id="register-btn" class="auth-btn primary">Créer un compte</button>
                 <button type="button" id="show-login" class="auth-btn secondary">Déjà un compte ?</button>
             </form>
         </div>
     </div>
 
-    <div id="app-container" class="container" style="display: none;">
-        <header>
-            <div class="user-info">
-                <span class="user-id-block"><span id="user-email"></span><span id="user-role-badge" class="role-badge" style="margin-left:8px;"></span></span>
-                <div class="user-actions">
-                    <button id="settings-btn" class="settings-btn" title="Paramètres">⚙️</button>
-                    <button id="logout-btn" class="logout-btn">Déconnexion</button>
+    <div id="app-container" class="app-container" style="display: none;">
+        <!-- Header avec glassmorphism -->
+        <header class="glass-header">
+            <div class="header-content">
+                <div class="user-section">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <span class="avatar-icon">👤</span>
+                        </div>
+                        <div class="user-details">
+                            <span class="user-email" id="user-email"></span>
+                            <span id="user-role-badge" class="role-badge"></span>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <button id="settings-btn" class="glass-btn settings-btn" title="Paramètres">
+                            <span class="btn-icon">⚙️</span>
+                        </button>
+                        <button id="logout-btn" class="glass-btn logout-btn">
+                            <span class="btn-icon">🚪</span>
+                            <span class="btn-text">Déconnexion</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <h1>🎮 Pokédex National</h1>
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-number" id="captured-count">0</span>
-                    <span class="stat-label">Capturés</span>
+                
+                <div class="title-section">
+                    <h1 class="main-title">
+                        <span class="title-icon">🎮</span>
+                        <span class="title-text">Pokédex National</span>
+                    </h1>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="percentage">0%</span>
-                    <span class="stat-label">Complétion</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="remaining">1025</span>
-                    <span class="stat-label">Restants</span>
+                
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <span class="stat-number" id="captured-count">0</span>
+                                <span class="stat-label">Capturés</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-content">
+                                <span class="stat-number" id="percentage">0%</span>
+                                <span class="stat-label">Complétion</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏳</div>
+                            <div class="stat-content">
+                                <span class="stat-number" id="remaining">1025</span>
+                                <span class="stat-label">Restants</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <div class="main-toolbar">
-            <div class="toolbar-search">
-                <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Rechercher un Pokémon..." class="search-input">
-                    <button id="clear-search" class="clear-search-btn" style="display: none;">✕</button>
+        <!-- Toolbar avec glassmorphism -->
+        <div class="glass-toolbar">
+            <div class="toolbar-content">
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-icon">🔍</div>
+                        <input type="text" id="search-input" placeholder="Rechercher un Pokémon..." class="search-input">
+                        <button id="clear-search" class="clear-search-btn" style="display: none;">
+                            <span class="clear-icon">✕</span>
+                        </button>
+                    </div>
+                    <div id="search-results" class="search-results" style="display: none;"></div>
                 </div>
-                <div id="search-results" class="search-results" style="display: none;"></div>
-            </div>
-            <div class="filter-buttons">
-                <button id="show-all" class="filter-btn active">Tous</button>
-                <button id="show-captured" class="filter-btn">Capturés</button>
-                <!-- Bouton 'Manquants' supprimé -->
-            </div>
-            <div class="grid-size-selector" style="margin-left:20px;display:inline-block;">
-                <label for="grid-size-select" style="font-size:14px;">Taille de la grille :</label>
-                <select id="grid-size-select" style="margin-left:5px;">
-                    <option value="16" selected>4 x 4</option>
-                    <option value="9">3 x 3</option>
-                    <option value="4">2 x 2</option>
-                </select>
+                
+                <div class="controls-section">
+                    <div class="filter-group">
+                        <button id="show-all" class="filter-btn active">
+                            <span class="filter-icon">📋</span>
+                            <span class="filter-text">Tous</span>
+                        </button>
+                        <button id="show-captured" class="filter-btn">
+                            <span class="filter-icon">✅</span>
+                            <span class="filter-text">Capturés</span>
+                        </button>
+                    </div>
+                    
+                    <div class="grid-controls">
+                        <div class="grid-size-selector">
+                            <label for="grid-size-select" class="grid-label">Taille :</label>
+                            <select id="grid-size-select" class="grid-select">
+                                <option value="16" selected>4 x 4</option>
+                                <option value="9">3 x 3</option>
+                                <option value="4">2 x 2</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <main>
+        <!-- Main content avec glassmorphism -->
+        <main class="glass-main">
             <div class="pokemon-grid" id="pokemon-grid">
                 <!-- Les Pokémon seront générés ici -->
             </div>
             
-            <div class="pagination-container">
+            <div class="pagination-section">
                 <div class="pagination-controls">
-                    <button id="first-page" class="nav-btn" title="Première page">⏮</button>
-                    <button id="prev-page" class="nav-btn" title="Page précédente">←</button>
-                    <span class="page-info">Page <span id="current-page">1</span> / 65</span>
-                    <button id="next-page" class="nav-btn" title="Page suivante">→</button>
-                    <input type="number" id="goto-page-input" min="1" max="65" placeholder="Page" class="goto-input">
-                    <button id="goto-page-btn" class="nav-btn">Aller</button>
+                    <button id="first-page" class="nav-btn" title="Première page">
+                        <span class="nav-icon">⏮</span>
+                    </button>
+                    <button id="prev-page" class="nav-btn" title="Page précédente">
+                        <span class="nav-icon">←</span>
+                    </button>
+                    <div class="page-info">
+                        <span class="page-text">Page</span>
+                        <span class="page-number" id="current-page">1</span>
+                        <span class="page-text">/ 65</span>
+                    </div>
+                    <button id="next-page" class="nav-btn" title="Page suivante">
+                        <span class="nav-icon">→</span>
+                    </button>
+                    <div class="goto-section">
+                        <input type="number" id="goto-page-input" min="1" max="65" placeholder="Page" class="goto-input">
+                        <button id="goto-page-btn" class="nav-btn">
+                            <span class="nav-text">Aller</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
         
         <!-- Bouton pour ouvrir la modale Pokédex National -->
-        <div style="text-align:center;margin:32px 0 0 0;">
-            <button id="open-pokedex-docs" style="padding:18px 36px;font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:14px;box-shadow:0 2px 8px rgba(102,126,234,0.10);cursor:pointer;transition:background 0.2s;">📄 Préparer son Pokédex National</button>
+        <div class="docs-section">
+            <button id="open-pokedex-docs" class="docs-btn">
+                <span class="docs-icon">📄</span>
+                <span class="docs-text">Préparer son Pokédex National</span>
+            </button>
         </div>
 
         <!-- Overlay/Modale Pokédex National -->
         <div id="pokedex-docs-modal" class="modal" style="display:none;z-index:2000;">
-            <div class="modal-content" style="max-width:520px;width:95%;margin:auto;background:white;border-radius:22px;padding:0;box-shadow:0 8px 32px rgba(102,126,234,0.18);">
-                <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:22px 28px 10px 28px;border-radius:22px 22px 0 0;background:linear-gradient(135deg,#667eea,#764ba2);color:white;">
-                    <h2 style="font-size:1.3rem;margin:0;">📄 Préparer son Pokédex National</h2>
-                    <button id="close-pokedex-docs" class="close-btn" style="background:rgba(255,255,255,0.18);border:none;color:white;padding:8px 14px;border-radius:8px;font-size:1.2rem;cursor:pointer;">✕</button>
+            <div class="modal-content glass-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">
+                        <span class="modal-icon">📄</span>
+                        <span class="modal-text">Préparer son Pokédex National</span>
+                    </h2>
+                    <button id="close-pokedex-docs" class="close-btn">
+                        <span class="close-icon">✕</span>
+                    </button>
                 </div>
-                <div class="modal-body" style="padding:28px 28px 18px 28px;text-align:center;">
-                    <p style="color:#444;margin-bottom:22px;">Téléchargez des outils pour organiser votre collection physique</p>
-                    <div style="display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:center;margin-bottom:18px;">
-                        <a href="https://github.com/Locktix/Pokedex-National/blob/main/assets/pokedex_complet.pdf?raw=true" download="pokedex_national_liste.pdf" class="doc-btn" style="display:inline-block;padding:16px 28px;font-size:1.1rem;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:12px;text-decoration:none;box-shadow:0 2px 8px rgba(102,126,234,0.10);transition:background 0.2s;">⬇️ Télécharger la liste des Pokémon (PDF)</a>
-                        <button id="choose-binder-btn" class="doc-btn" style="display:inline-block;padding:16px 28px;font-size:1.1rem;font-weight:600;background:linear-gradient(135deg,#4ecdc4,#667eea);color:white;border-radius:12px;text-decoration:none;box-shadow:0 2px 8px rgba(102,126,234,0.10);transition:background 0.2s;cursor:pointer;border:none;">🛒 Choisir un classeur 4x4</button>
+                <div class="modal-body">
+                    <p class="modal-description">Téléchargez des outils pour organiser votre collection physique</p>
+                    <div class="docs-actions">
+                        <a href="https://github.com/Locktix/Pokedex-National/blob/main/assets/pokedex_complet.pdf?raw=true" download="pokedex_national_liste.pdf" class="doc-btn primary">
+                            <span class="doc-icon">⬇️</span>
+                            <span class="doc-text">Télécharger la liste des Pokémon (PDF)</span>
+                        </a>
+                        <button id="choose-binder-btn" class="doc-btn secondary">
+                            <span class="doc-icon">🛒</span>
+                            <span class="doc-text">Choisir un classeur 4x4</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -130,57 +229,99 @@
         
         <!-- Sous-modale pour choix du classeur -->
         <div id="binder-choice-modal" class="modal" style="display:none;z-index:2100;">
-            <div class="modal-content" style="max-width:420px;width:95%;margin:auto;background:white;border-radius:20px;padding:0;box-shadow:0 8px 32px rgba(102,126,234,0.18);">
-                <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 8px 24px;border-radius:20px 20px 0 0;background:linear-gradient(135deg,#667eea,#764ba2);color:white;">
-                    <h3 style="font-size:1.1rem;margin:0;">🛒 Choisir un classeur 4x4</h3>
-                    <button id="close-binder-choice" class="close-btn" style="background:rgba(255,255,255,0.18);border:none;color:white;padding:6px 12px;border-radius:8px;font-size:1.1rem;cursor:pointer;">✕</button>
+            <div class="modal-content glass-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">
+                        <span class="modal-icon">🛒</span>
+                        <span class="modal-text">Choisir un classeur 4x4</span>
+                    </h3>
+                    <button id="close-binder-choice" class="close-btn">
+                        <span class="close-icon">✕</span>
+                    </button>
                 </div>
-                <div class="modal-body" style="padding:22px 22px 16px 22px;text-align:center;">
-                    <div style="margin-bottom:18px;color:#444;">Sélectionnez votre classeur préféré :</div>
-                    <a href="https://amzn.eu/d/fpM8c9d" target="_blank" rel="noopener" style="display:block;margin-bottom:16px;padding:14px 0;font-size:1.08rem;font-weight:600;background:linear-gradient(135deg,#ffb347,#ffcc33);color:#333;border-radius:10px;text-decoration:none;box-shadow:0 1px 4px rgba(102,126,234,0.07);">Amazon – Classeur premium (≈ 50-60€)</a>
-                    <a href="https://fr.aliexpress.com/item/1005009205993851.html" target="_blank" rel="noopener" style="display:block;margin-bottom:8px;padding:14px 0;font-size:1.08rem;font-weight:600;background:linear-gradient(135deg,#4ecdc4,#67eaa0);color:#222;border-radius:10px;text-decoration:none;box-shadow:0 1px 4px rgba(102,126,234,0.07);">AliExpress – Classeur économique (≈ 20-25€)</a>
-                    <div style="margin-top:10px;color:#888;font-size:0.97rem;">(Prix indicatifs, liens non sponsorisés)</div>
+                <div class="modal-body">
+                    <p class="modal-description">Sélectionnez votre classeur préféré :</p>
+                    <div class="binder-options">
+                        <a href="https://amzn.eu/d/fpM8c9d" target="_blank" rel="noopener" class="binder-option premium">
+                            <span class="binder-icon">⭐</span>
+                            <span class="binder-text">Amazon – Classeur premium (≈ 50-60€)</span>
+                        </a>
+                        <a href="https://fr.aliexpress.com/item/1005009205993851.html" target="_blank" rel="noopener" class="binder-option economy">
+                            <span class="binder-icon">💰</span>
+                            <span class="binder-text">AliExpress – Classeur économique (≈ 20-25€)</span>
+                        </a>
+                    </div>
+                    <div class="binder-disclaimer">
+                        <span class="disclaimer-text">(Prix indicatifs, liens non sponsorisés)</span>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <footer class="footer-minimal">
-            <span>Pokédex National &copy; 2025 – par Locktix</span>
+        <footer class="glass-footer">
+            <span class="footer-text">Pokédex National &copy; 2025 – par Locktix</span>
         </footer>
     </div>
 
     <!-- Modal des paramètres -->
     <div id="settings-modal" class="modal" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content glass-modal">
             <div class="modal-header">
-                <h3>⚙️ Paramètres</h3>
-                <button id="close-settings" class="close-btn">✕</button>
+                <h3 class="modal-title">
+                    <span class="modal-icon">⚙️</span>
+                    <span class="modal-text">Paramètres</span>
+                </h3>
+                <button id="close-settings" class="close-btn">
+                    <span class="close-icon">✕</span>
+                </button>
             </div>
             <div class="modal-body">
-
-                
                 <!-- Section Admin (visible uniquement pour les admins) -->
                 <div id="admin-settings" class="settings-section" style="display: none;">
-                    <h4>👑 Administration</h4>
+                    <h4 class="section-title">
+                        <span class="section-icon">👑</span>
+                        <span class="section-text">Administration</span>
+                    </h4>
                     
                     <div class="setting-item">
-                        <label>📊 Statistiques globales</label>
-                        <button id="view-global-stats" class="admin-btn">Voir les stats</button>
+                        <label class="setting-label">
+                            <span class="setting-icon">📊</span>
+                            <span class="setting-text">Statistiques globales</span>
+                        </label>
+                        <button id="view-global-stats" class="admin-btn">
+                            <span class="btn-icon">👁️</span>
+                            <span class="btn-text">Voir les stats</span>
+                        </button>
                     </div>
                     
                     <div class="setting-item">
-                        <label>👥 Gestion des utilisateurs</label>
-                        <button id="manage-users" class="admin-btn">Gérer les utilisateurs</button>
+                        <label class="setting-label">
+                            <span class="setting-icon">👥</span>
+                            <span class="setting-text">Gestion des utilisateurs</span>
+                        </label>
+                        <button id="manage-users" class="admin-btn">
+                            <span class="btn-icon">⚙️</span>
+                            <span class="btn-text">Gérer les utilisateurs</span>
+                        </button>
                     </div>
                     
                     <div class="setting-item">
-                        <label>🔧 Mode maintenance</label>
+                        <label class="setting-label">
+                            <span class="setting-icon">🔧</span>
+                            <span class="setting-text">Mode maintenance</span>
+                        </label>
                         <input type="checkbox" id="maintenance-mode" class="toggle-switch">
                     </div>
                     
                     <div class="setting-item">
-                        <label>📈 Export des données</label>
-                        <button id="export-data" class="admin-btn">Exporter JSON</button>
+                        <label class="setting-label">
+                            <span class="setting-icon">📈</span>
+                            <span class="setting-text">Export des données</span>
+                        </label>
+                        <button id="export-data" class="admin-btn">
+                            <span class="btn-icon">📥</span>
+                            <span class="btn-text">Exporter JSON</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -189,14 +330,19 @@
 
     <!-- Modal des statistiques globales -->
     <div id="stats-modal" class="modal" style="display: none;">
-        <div class="modal-content stats-modal">
+        <div class="modal-content glass-modal stats-modal">
             <div class="modal-header">
-                <h3>📊 Statistiques Globales</h3>
-                <button id="close-stats" class="close-btn">✕</button>
+                <h3 class="modal-title">
+                    <span class="modal-icon">📊</span>
+                    <span class="modal-text">Statistiques Globales</span>
+                </h3>
+                <button id="close-stats" class="close-btn">
+                    <span class="close-icon">✕</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div id="stats-content">
-                    <p>Chargement des statistiques...</p>
+                    <p class="loading-text">Chargement des statistiques...</p>
                 </div>
             </div>
         </div>
@@ -204,37 +350,55 @@
 
     <!-- Modal de gestion des utilisateurs -->
     <div id="users-modal" class="modal" style="display: none;">
-        <div class="modal-content users-modal" style="max-width:1100px;max-height:90vh;overflow-y:auto;">
+        <div class="modal-content glass-modal users-modal">
             <div class="modal-header">
-                <h3>👥 Gestion des Utilisateurs</h3>
-                <button id="close-users" class="close-btn">✕</button>
+                <h3 class="modal-title">
+                    <span class="modal-icon">👥</span>
+                    <span class="modal-text">Gestion des Utilisateurs</span>
+                </h3>
+                <button id="close-users" class="close-btn">
+                    <span class="close-icon">✕</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="users-search-bar">
-                    <input type="text" id="users-search-input" placeholder="Rechercher par nom, email ou rôle..." autocomplete="off">
-                    <span class="users-search-icon">🔍</span>
+                    <div class="search-input-wrapper">
+                        <input type="text" id="users-search-input" placeholder="Rechercher par nom, email ou rôle..." autocomplete="off" class="users-search-input">
+                        <span class="users-search-icon">🔍</span>
+                    </div>
                 </div>
                 <div class="users-cards-container">
                     <div id="users-table-root" class="users-cards-grid">
                         <!-- Les cartes utilisateurs seront générées ici -->
                     </div>
                 </div>
-                <div id="users-empty-message" style="display:none;text-align:center;color:#888;margin-top:20px;">Aucun utilisateur trouvé.</div>
+                <div id="users-empty-message" style="display:none;" class="empty-message">
+                    <span class="empty-icon">🔍</span>
+                    <span class="empty-text">Aucun utilisateur trouvé.</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Modal de collection d'utilisateur (admin) -->
     <div id="user-collection-modal" class="modal" style="display: none;">
-        <div class="modal-content user-collection-modal" style="max-width:800px;max-height:90vh;overflow:auto;">
+        <div class="modal-content glass-modal user-collection-modal">
             <div class="modal-header">
-                <h3>🃏 Collection de <span id="collection-username"></span></h3>
+                <h3 class="modal-title">
+                    <span class="modal-icon">🃏</span>
+                    <span class="modal-text">Collection de <span id="collection-username"></span></span>
+                </h3>
                 <div id="collection-stats" class="collection-stats-badges"></div>
-                <button id="close-collection" class="close-btn">✕</button>
+                <button id="close-collection" class="close-btn">
+                    <span class="close-icon">✕</span>
+                </button>
             </div>
             <div class="modal-body">
-                <div id="user-collection-grid" class="pokemon-grid" style="max-height:65vh;overflow-y:auto;"></div>
-                <div id="user-collection-empty" style="display:none;text-align:center;color:#888;margin-top:20px;">Aucun Pokémon capturé.</div>
+                <div id="user-collection-grid" class="pokemon-grid"></div>
+                <div id="user-collection-empty" style="display:none;" class="empty-message">
+                    <span class="empty-icon">🎣</span>
+                    <span class="empty-text">Aucun Pokémon capturé.</span>
+                </div>
             </div>
         </div>
     </div>
