@@ -1789,6 +1789,7 @@ body {
         flex-wrap: wrap;
         gap: var(--spacing-sm);
         padding: var(--spacing-md);
+        justify-content: center;
     }
     
     .page-info {
@@ -1942,6 +1943,7 @@ body {
     
     .pagination-controls {
         padding: var(--spacing-sm);
+        justify-content: center;
     }
     
     .nav-btn {
