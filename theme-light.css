@@ -329,6 +329,7 @@ body {
     border-radius: var(--radius-xl);
     padding: var(--spacing-xl);
     box-shadow: var(--glass-shadow);
+    margin-bottom: var(--spacing-lg);
 }
 
 .header-content {
@@ -533,6 +534,7 @@ body {
     border-radius: var(--radius-xl);
     padding: var(--spacing-xl);
     box-shadow: var(--glass-shadow);
+    margin-bottom: var(--spacing-lg);
 }
 
 .toolbar-content {
@@ -813,6 +815,7 @@ body {
     padding: var(--spacing-xl);
     box-shadow: var(--glass-shadow);
     flex: 1;
+    margin-top: var(--spacing-sm);
 }
 
 .pokemon-grid {
