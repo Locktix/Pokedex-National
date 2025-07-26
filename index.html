@@ -211,7 +211,7 @@
 
     <!-- Modal de gestion des utilisateurs -->
     <div id="users-modal" class="modal" style="display: none;">
-        <div class="modal-content users-modal">
+        <div class="modal-content users-modal" style="max-width:1100px;max-height:90vh;overflow-y:auto;">
             <div class="modal-header">
                 <h3>👥 Gestion des Utilisateurs</h3>
                 <button id="close-users" class="close-btn">✕</button>
@@ -221,9 +221,9 @@
                     <input type="text" id="users-search-input" placeholder="Rechercher par nom, email ou rôle..." autocomplete="off">
                     <span class="users-search-icon">🔍</span>
                 </div>
-                <div class="users-table-container">
-                    <div id="users-table-root">
-                        <!-- Table générée dynamiquement ici -->
+                <div class="users-cards-container">
+                    <div id="users-table-root" class="users-cards-grid">
+                        <!-- Les cartes utilisateurs seront générées ici -->
                     </div>
                 </div>
                 <div id="users-empty-message" style="display:none;text-align:center;color:#888;margin-top:20px;">Aucun utilisateur trouvé.</div>

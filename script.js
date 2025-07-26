@@ -1590,46 +1590,35 @@ function renderUsersTable(users) {
         usersTableRoot.innerHTML = '';
         return;
     }
-    let html = `<table class="users-table">
-        <thead>
-            <tr>
-                <th>Utilisateur</th>
-                <th>Rôle</th>
-                <th>Dernière activité</th>
-                <th class="actions">Actions</th>
-            </tr>
-        </thead>
-        <tbody>`;
+    let html = '';
     users.forEach(user => {
         let dateStr = user.lastActivity;
         if (dateStr && dateStr.length === 10 && dateStr.includes('/')) {
             // Format attendu : JJ/MM/AAAA
             const [jour, mois, annee] = dateStr.split('/');
-            dateStr = `<span>${jour}/${mois}</span><br><span style='font-size:12px;color:#888;'>${annee}</span>`;
+            dateStr = `<span>${jour}/${mois}/${annee}</span>`;
         }
-        html += `<tr data-uid="${user.uid}">
-            <td><span title="${user.email || ''}">${user.username || 'N/A'}</span></td>
-            <td>
-                <span class="role-badge ${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
-                <div class="role-selector-inline">
-                    <select class="role-select" data-uid="${user.uid}" data-current-role="${user.role}">
-                        <option value="member" ${user.role === 'member' ? 'selected' : ''}>Membre</option>
-                        <option value="tester" ${user.role === 'tester' ? 'selected' : ''}>Testeur</option>
-                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                    </select>
-                    <button class="update-role-btn" data-uid="${user.uid}" style="display:none;">✓</button>
-                </div>
-            </td>
-            <td>${dateStr}</td>
-            <td class="actions">
-                <button class="admin-btn info small" onclick="showUserCollectionModal('${user.uid}', '${user.username.replace(/'/g, "&#39;")}', ${user.capturedCount || 0}, '${user.completion || '0'}')" title="Voir la collection">🃏</button>
-                <button class="admin-btn danger small" onclick="resetUserProgressById('${user.uid}')" title="Réinitialiser progression">🔄</button>
-            </td>
-        </tr>`;
+        html += `
+        <div class="user-card" data-uid="${user.uid}">
+            <div class="user-card-header">
+                <span class="user-card-username">${user.username || 'N/A'}</span>
+                <span class="user-card-badge ${user.role}" data-uid="${user.uid}" data-current-role="${user.role}" style="cursor: pointer;" title="Cliquer pour changer le rôle">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
+            </div>
+            <div class="user-card-email">${user.email || ''}</div>
+            <div class="user-card-stats">
+                <span><b>${user.capturedCount || 0}</b> capturés</span> · 
+                <span><b>${user.completion || '0'}%</b> complétion</span><br>
+                <span style='font-size:0.93em;color:#aaa;'>Dernière activité : ${dateStr}</span>
+            </div>
+            <div class="user-card-actions">
+                <button class="user-card-btn" onclick="showUserCollectionModal('${user.uid}', '${user.username.replace(/'/g, "&#39;")}', ${user.capturedCount || 0}, '${user.completion || '0'}')" title="Voir la collection">🃏 Collection</button>
+                <button class="user-card-btn danger" onclick="resetUserProgressById('${user.uid}')" title="Réinitialiser progression">🔄 Réinitialiser</button>
+            </div>
+        </div>
+        `;
     });
-    html += '</tbody></table>';
     usersTableRoot.innerHTML = html;
-    setupRoleSelectors();
+    setupRoleBadgeClickHandlers();
 }
 
 // Afficher la collection d'un utilisateur dans un modal (admin)
@@ -1855,32 +1844,36 @@ function showMaintenanceScreen() {
 }
 
 // Configurer les sélecteurs de rôle
-function setupRoleSelectors() {
-    const roleSelects = document.querySelectorAll('.role-select');
+function setupRoleBadgeClickHandlers() {
+    const roleBadges = document.querySelectorAll('.user-card-badge');
     
-    roleSelects.forEach(select => {
-        select.addEventListener('change', function() {
+    roleBadges.forEach(badge => {
+        badge.addEventListener('click', async function() {
             const uid = this.dataset.uid;
-            const newRole = this.value;
             const currentRole = this.dataset.currentRole;
-            const updateBtn = document.querySelector(`.update-role-btn[data-uid="${uid}"]`);
             
-            if (newRole !== currentRole) {
-                updateBtn.style.display = 'inline-block';
-            } else {
-                updateBtn.style.display = 'none';
+            // Cycle through roles: member -> tester -> admin -> member
+            let newRole;
+            switch(currentRole) {
+                case 'member':
+                    newRole = 'tester';
+                    break;
+                case 'tester':
+                    newRole = 'admin';
+                    break;
+                case 'admin':
+                    newRole = 'member';
+                    break;
+                default:
+                    newRole = 'member';
             }
-        });
-    });
-    
-    // Event listeners pour les boutons de mise à jour
-    const updateBtns = document.querySelectorAll('.update-role-btn');
-    updateBtns.forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const uid = this.dataset.uid;
-            const select = document.querySelector(`.role-select[data-uid="${uid}"]`);
-            const newRole = select.value;
             
+            // Update the badge immediately for better UX
+            this.textContent = newRole.charAt(0).toUpperCase() + newRole.slice(1);
+            this.className = `user-card-badge ${newRole}`;
+            this.dataset.currentRole = newRole;
+            
+            // Update the role in Firebase
             await updateUserRole(uid, newRole);
         });
     });
@@ -1899,20 +1892,18 @@ async function updateUserRole(uid, newRole) {
             role: newRole
         });
         
-        // Mettre à jour l'affichage
-        const select = document.querySelector(`.role-select[data-uid="${uid}"]`);
-        const badge = select.closest('td').querySelector('.role-badge');
-        const updateBtn = document.querySelector(`.update-role-btn[data-uid="${uid}"]`);
-        
-        select.dataset.currentRole = newRole;
-        badge.textContent = newRole;
-        badge.className = `role-badge ${newRole}`;
-        updateBtn.style.display = 'none';
-        
         showNotification(`Rôle mis à jour : ${newRole}`, 'success');
     } catch (error) {
         console.error('Erreur lors de la mise à jour du rôle:', error);
         showNotification('Erreur lors de la mise à jour du rôle', 'error');
+        
+        // Revert the badge if the update failed
+        const badge = document.querySelector(`.user-card-badge[data-uid="${uid}"]`);
+        if (badge) {
+            const currentRole = badge.dataset.currentRole;
+            badge.textContent = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
+            badge.className = `user-card-badge ${currentRole}`;
+        }
     }
 }
 
