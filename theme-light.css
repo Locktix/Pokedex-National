@@ -342,7 +342,6 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
     gap: var(--spacing-lg);
 }
 
@@ -1613,8 +1612,31 @@ body {
 /* Responsive adjustments for stats modal */
 @media (max-width: 768px) {
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
         gap: var(--spacing-md);
+    }
+    
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .stat-icon {
+        font-size: 1.8rem;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .stat-content {
+        gap: var(--spacing-xs);
+    }
+    
+    .stat-number {
+        font-size: 1.6rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
     }
     
     .global-stat-card {
@@ -1631,6 +1653,24 @@ body {
 }
 
 @media (max-width: 480px) {
+    .stat-card {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-xs);
+    }
+    
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .stat-number {
+        font-size: 1.4rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
     .global-stat-card {
         padding: var(--spacing-md);
     }
@@ -1720,6 +1760,7 @@ body {
         align-items: center;
         gap: var(--spacing-md);
         justify-content: space-between;
+        flex-wrap: nowrap;
     }
     
     .user-actions {
@@ -1742,7 +1783,7 @@ body {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
         gap: var(--spacing-md);
     }
     
@@ -1831,6 +1872,7 @@ body {
         align-items: center;
         gap: var(--spacing-sm);
         justify-content: space-between;
+        flex-wrap: nowrap;
     }
     
     .user-actions {
