@@ -13,7 +13,6 @@ let currentUser = null;
 // Variables pour le système de rôles
 let userRole = 'member'; // 'member', 'tester', 'admin'
 let allUsers = [];
-let isDarkMode = false;
 
 // Ajout : mémoriser la page courante pour chaque filtre
 let pageByFilter = { all: 1, captured: 1 };
@@ -127,12 +126,6 @@ async function fetchFrenchPokemonNames() {
 // Initialisation
 async function init() {
     try {
-        // Appliquer le mode sombre à l'écran de chargement si activé
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (isDarkMode) {
-            document.body.classList.add('dark-mode');
-        }
-        
         let pokemonListCache = localStorage.getItem('pokemonListFR');
         if (pokemonListCache) {
             pokemonList = JSON.parse(pokemonListCache);
@@ -193,7 +186,6 @@ function initAuth() {
             displayCurrentPage();
             updateStats();
             setFilter(currentFilter);
-            applyDarkMode(); // Appliquer le mode sombre si activé
         } else {
             // Utilisateur déconnecté
             currentUser = null;
@@ -929,9 +921,6 @@ document.addEventListener('keydown', (event) => {
 
 // Démarrer l'application quand le DOM est chargé
 document.addEventListener('DOMContentLoaded', () => {
-    // Synchroniser la variable globale avec le localStorage
-    isDarkMode = localStorage.getItem('darkMode') === 'true';
-    applyDarkMode();
     console.log('DOM chargé, initialisation de l\'application...');
     init();
     // Attacher le listener sur le bouton "Gérer les utilisateurs" après que le DOM soit prêt
@@ -1327,7 +1316,6 @@ function setupSettingsModal() {
     const settingsBtn = document.getElementById('settings-btn');
     const settingsModal = document.getElementById('settings-modal');
     const closeSettings = document.getElementById('close-settings');
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
     
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
@@ -1355,48 +1343,16 @@ function setupSettingsModal() {
         });
     }
     
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener('change', toggleDarkMode);
-    }
-    
     // Event listeners pour les fonctionnalités admin
     setupAdminEventListeners();
 }
 
 function loadSettings() {
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
     const maintenanceModeToggle = document.getElementById('maintenance-mode');
-    
-    if (darkModeToggle) {
-        isDarkMode = localStorage.getItem('darkMode') === 'true';
-        darkModeToggle.checked = isDarkMode;
-        applyDarkMode();
-    }
     
     if (maintenanceModeToggle) {
         const isMaintenance = localStorage.getItem('maintenanceMode') === 'true';
         maintenanceModeToggle.checked = isMaintenance;
-    }
-}
-
-// Basculer le mode sombre
-function toggleDarkMode() {
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
-    if (darkModeToggle) {
-        isDarkMode = darkModeToggle.checked;
-        localStorage.setItem('darkMode', isDarkMode);
-        applyDarkMode();
-        showNotification(`Mode sombre ${isDarkMode ? 'activé' : 'désactivé'}`, 'info');
-    }
-}
-
-// Appliquer le mode sombre
-function applyDarkMode() {
-    const body = document.body;
-    if (isDarkMode) {
-        body.classList.add('dark-mode');
-    } else {
-        body.classList.remove('dark-mode');
     }
 }
 
@@ -1594,7 +1550,7 @@ function renderUsersTable(users) {
     users.forEach(user => {
         let dateStr = user.lastActivity;
         if (dateStr && dateStr.length === 10 && dateStr.includes('/')) {
-            // Format attendu : JJ/MM/AAAA
+            // Format atte²ndu : JJ/MM/AAAA
             const [jour, mois, annee] = dateStr.split('/');
             dateStr = `<span>${jour}/${mois}/${annee}</span>`;
         }
