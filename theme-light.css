@@ -1644,6 +1644,138 @@ body {
     border: 1px solid rgba(118, 75, 162, 0.3);
 }
 
+/* ===== STATS MODAL CARDS ===== */
+
+.stats-modal {
+    max-width: 900px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.global-stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.global-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.global-stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.global-stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: var(--spacing-xs);
+    font-family: var(--font-mono);
+}
+
+.global-stat-label {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.global-stat-description {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: var(--spacing-sm);
+    line-height: 1.4;
+}
+
+/* Stats modal specific styles */
+#stats-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.stats-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.stats-section-title {
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.stats-section-icon {
+    font-size: 1.5rem;
+}
+
+.stats-section-text {
+    font-size: 1.3rem;
+}
+
+/* Responsive adjustments for stats modal */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .global-stat-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .global-stat-number {
+        font-size: 2rem;
+    }
+    
+    .global-stat-icon {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .global-stat-card {
+        padding: var(--spacing-md);
+    }
+    
+    .global-stat-number {
+        font-size: 1.8rem;
+    }
+    
+    .global-stat-icon {
+        font-size: 1.8rem;
+    }
+    
+    .global-stat-label {
+        font-size: 0.9rem;
+    }
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 
 @media (max-width: 1200px) {

@@ -1,5 +1,5 @@
 {
-  "version": "1.1.8",
+  "version": "1.2.1",
   "date": "2025-07-23",
-  "changelog": "Correction d'un bug lors de la réinitialisation de la progression d'un utilisateur"
+  "changelog": "refonte de la modale Pokédex National"
 } 
