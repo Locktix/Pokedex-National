@@ -127,6 +127,12 @@ async function fetchFrenchPokemonNames() {
 // Initialisation
 async function init() {
     try {
+        // Appliquer le mode sombre à l'écran de chargement si activé
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        }
+        
         let pokemonListCache = localStorage.getItem('pokemonListFR');
         if (pokemonListCache) {
             pokemonList = JSON.parse(pokemonListCache);
@@ -144,6 +150,8 @@ async function init() {
     } catch (error) {
         console.error('Erreur lors du chargement des Pokémon:', error);
         pokemonGrid.innerHTML = '<p style="text-align: center; color: red;">Erreur lors du chargement des données</p>';
+        hideLoading();
+        showAuth();
     }
 }
 
@@ -155,6 +163,8 @@ function initAuth() {
     if (!window.auth) {
         console.error('Firebase Auth n\'est pas disponible');
         showNotification('Erreur: Firebase non initialisé', 'error');
+        hideLoading();
+        showAuth();
         return;
     }
     
@@ -167,6 +177,7 @@ function initAuth() {
             currentUser = user;
             console.log('Utilisateur connecté:', user.email);
             
+            hideLoading();
             showApp();
             await loadUserData();
             await loadUserRole(); // Charger le rôle de l'utilisateur
@@ -187,12 +198,21 @@ function initAuth() {
             // Utilisateur déconnecté
             currentUser = null;
             console.log('Utilisateur déconnecté');
+            hideLoading();
             showAuth();
         }
     });
     
     // Configurer les event listeners d'authentification
     setupAuthEventListeners();
+}
+
+// Masquer l'écran de chargement
+function hideLoading() {
+    const loadingContainer = document.getElementById('loading-container');
+    if (loadingContainer) {
+        loadingContainer.style.display = 'none';
+    }
 }
 
 // Afficher l'interface d'authentification

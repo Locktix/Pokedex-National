@@ -9,8 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Écran de chargement -->
+    <div id="loading-container" class="loading-container">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <h2>🎮 Pokédex National</h2>
+            <p>Chargement en cours...</p>
+        </div>
+    </div>
+
     <!-- Interface d'authentification -->
-    <div id="auth-container" class="auth-container">
+    <div id="auth-container" class="auth-container" style="display: none;">
         <div class="auth-card">
             <h2>🎮 Pokédex National</h2>
             <p class="auth-subtitle">Connectez-vous pour sauvegarder votre progression</p>
