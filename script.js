@@ -89,7 +89,7 @@ function updateGridColumns(size) {
     }
 }
 
-function cycleGridSize() {
+async function cycleGridSize() {
     currentGridSizeIndex = (currentGridSizeIndex + 1) % gridSizes.length;
     const newConfig = gridSizes[currentGridSizeIndex];
     
@@ -98,7 +98,7 @@ function cycleGridSize() {
     currentPage = 1;
     localStorage.setItem('gridSize', newConfig.size);
     updateGridColumns(newConfig.size);
-    displayCurrentPage();
+    await displayCurrentPage();
     updateStats();
     
     // Mettre à jour le texte de pagination
@@ -220,9 +220,9 @@ function initAuth() {
             
             setupEventListeners();
             setupSettingsModal(); // Configurer le modal des paramètres
-            displayCurrentPage();
+            await displayCurrentPage();
             updateStats();
-            setFilter(currentFilter);
+            await setFilter(currentFilter);
         } else {
             // Utilisateur déconnecté
             currentUser = null;
@@ -445,18 +445,18 @@ async function handleLogout() {
 
 // Configuration des event listeners
 function setupEventListeners() {
-    prevPageBtn.addEventListener('click', () => {
+    prevPageBtn.addEventListener('click', async () => {
         if (currentPage > 1) {
             currentPage--;
-            displayCurrentPage();
+            await displayCurrentPage();
             updateStats();
         }
     });
     
-    nextPageBtn.addEventListener('click', () => {
+    nextPageBtn.addEventListener('click', async () => {
         if (currentPage < TOTAL_PAGES) {
             currentPage++;
-            displayCurrentPage();
+            await displayCurrentPage();
             updateStats();
         }
     });
@@ -464,9 +464,9 @@ function setupEventListeners() {
     // Aller à la première page
     const firstPageBtn = document.getElementById('first-page');
     if (firstPageBtn) {
-        firstPageBtn.addEventListener('click', () => {
+        firstPageBtn.addEventListener('click', async () => {
             currentPage = 1;
-            displayCurrentPage();
+            await displayCurrentPage();
             updateStats();
         });
     }
@@ -475,11 +475,11 @@ function setupEventListeners() {
     const gotoInput = document.getElementById('goto-page-input');
     const gotoBtn = document.getElementById('goto-page-btn');
     if (gotoBtn && gotoInput) {
-        gotoBtn.addEventListener('click', () => {
+        gotoBtn.addEventListener('click', async () => {
             const page = parseInt(gotoInput.value, 10);
             if (!isNaN(page) && page >= 1 && page <= TOTAL_PAGES) {
                 currentPage = page;
-                displayCurrentPage();
+                await displayCurrentPage();
                 updateStats();
             } else {
                 showNotification('Numéro de page invalide', 'error');
@@ -519,13 +519,17 @@ function setupEventListeners() {
     // showMissingBtn supprimé
 }
 
-// Afficher la page courante
-function displayCurrentPage() {
+// Afficher la page courante avec animations
+async function displayCurrentPage() {
     // Toujours mettre à jour le nombre de colonnes selon la taille de grille
     if (typeof updateGridColumns === 'function') {
         updateGridColumns(POKEMON_PER_PAGE);
     }
+    
     let totalPages = TOTAL_PAGES;
+    
+
+    
     if (currentFilter === 'captured') {
         const capturedList = Array.from(capturedPokemon).sort((a, b) => a - b);
         totalPages = Math.max(1, Math.ceil(capturedList.length / POKEMON_PER_PAGE));
@@ -534,41 +538,53 @@ function displayCurrentPage() {
         pokemonGrid.innerHTML = '';
         const startIndex = (currentPage - 1) * POKEMON_PER_PAGE;
         const endIndex = Math.min(startIndex + POKEMON_PER_PAGE, capturedList.length);
+        
+        // Créer et ajouter les cartes
         for (let i = startIndex; i < endIndex; i++) {
             const pokemonNumber = capturedList[i];
             const pokemonName = pokemonList[pokemonNumber - 1];
             const card = createPokemonCard(pokemonNumber, pokemonName, true);
             pokemonGrid.appendChild(card);
         }
+        
         updateNavigationButtons(totalPages === 1);
         // Mettre à jour le texte de pagination
         const pageInfo = document.querySelector('.page-info');
         if (pageInfo) {
             pageInfo.textContent = `Page ${currentPage} / ${totalPages}`;
         }
-        return;
+    } else {
+        // Sinon, comportement normal (tous)
+        totalPages = TOTAL_PAGES;
+        if (currentPage > totalPages) currentPage = totalPages;
+        currentPageElement.textContent = currentPage;
+        const startIndex = (currentPage - 1) * POKEMON_PER_PAGE;
+        const endIndex = Math.min(startIndex + POKEMON_PER_PAGE, TOTAL_POKEMON);
+        pokemonGrid.innerHTML = '';
+        
+        // Créer et ajouter les cartes
+        for (let i = startIndex; i < endIndex; i++) {
+            const pokemonNumber = i + 1;
+            const pokemonName = pokemonList[i];
+            const isCaptured = capturedPokemon.has(pokemonNumber);
+            const pokemonCard = createPokemonCard(pokemonNumber, pokemonName, isCaptured);
+            pokemonGrid.appendChild(pokemonCard);
+        }
+        
+        applyCurrentFilter();
+        updateNavigationButtons(totalPages === 1);
+        // Mettre à jour le texte de pagination
+        const pageInfo = document.querySelector('.page-info');
+        if (pageInfo) {
+            pageInfo.textContent = `Page ${currentPage} / ${totalPages}`;
+        }
     }
-    // Sinon, comportement normal (tous)
-    totalPages = TOTAL_PAGES;
-    if (currentPage > totalPages) currentPage = totalPages;
-    currentPageElement.textContent = currentPage;
-    const startIndex = (currentPage - 1) * POKEMON_PER_PAGE;
-    const endIndex = Math.min(startIndex + POKEMON_PER_PAGE, TOTAL_POKEMON);
-    pokemonGrid.innerHTML = '';
-    for (let i = startIndex; i < endIndex; i++) {
-        const pokemonNumber = i + 1;
-        const pokemonName = pokemonList[i];
-        const isCaptured = capturedPokemon.has(pokemonNumber);
-        const pokemonCard = createPokemonCard(pokemonNumber, pokemonName, isCaptured);
-        pokemonGrid.appendChild(pokemonCard);
-    }
-    applyCurrentFilter();
-    updateNavigationButtons(totalPages === 1);
-    // Mettre à jour le texte de pagination
-    const pageInfo = document.querySelector('.page-info');
-    if (pageInfo) {
-        pageInfo.textContent = `Page ${currentPage} / ${totalPages}`;
-    }
+    
+    // Re-trigger l'animation de transition de page
+    pokemonGrid.style.animation = 'none';
+    pokemonGrid.offsetHeight; // Force reflow
+    pokemonGrid.style.animation = 'pageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
 }
 
 // Créer une carte Pokémon
@@ -1003,7 +1019,7 @@ document.addEventListener('submit', (e) => {
 setInterval(saveUserData, 30000);
 
 // Fonctions de filtrage
-function setFilter(filter) {
+async function setFilter(filter) {
     // Sauvegarder la page courante pour le filtre précédent
     pageByFilter[currentFilter] = currentPage;
     currentFilter = filter;
@@ -1011,7 +1027,7 @@ function setFilter(filter) {
     currentPage = pageByFilter[filter] || 1;
     showAllBtn.classList.toggle('active', filter === 'all');
     showCapturedBtn.classList.toggle('active', filter === 'captured');
-    displayCurrentPage();
+    await displayCurrentPage();
     updateStats();
     saveUserData();
 }
@@ -1218,11 +1234,11 @@ function handleSearch() {
     }
 }
 
-function goToPokemon(pokemonNumber) {
+async function goToPokemon(pokemonNumber) {
     console.log(`[SEARCH] Navigation vers le Pokémon #${pokemonNumber}`);
     
     // Forcer le filtre sur "Tous" pour que la carte soit visible
-    setFilter('all');
+    await setFilter('all');
     
     // Calculer la page contenant ce Pokémon
     const targetPage = Math.ceil(pokemonNumber / POKEMON_PER_PAGE);
@@ -1232,7 +1248,7 @@ function goToPokemon(pokemonNumber) {
     // Aller à la page si nécessaire
     if (currentPage !== targetPage) {
         currentPage = targetPage;
-        displayCurrentPage();
+        await displayCurrentPage();
         updateNavigationButtons();
     }
     
@@ -1807,7 +1823,7 @@ async function resetUserProgressById(uid) {
 }
 
 // Mettre à jour la taille de la grille
-function updateGridSize() {
+async function updateGridSize() {
     if (!hasPermission('manage_users')) {
         showNotification('Accès refusé', 'error');
         return;
@@ -1825,7 +1841,7 @@ function updateGridSize() {
     
     // Mettre à jour l'affichage
     currentPage = 1;
-    displayCurrentPage();
+    await displayCurrentPage();
     updateStats();
     
     // Mettre à jour le texte de pagination
