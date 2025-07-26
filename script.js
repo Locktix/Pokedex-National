@@ -46,6 +46,28 @@ let filteredUsersList = [];
 const gridSizeBtn = document.getElementById('grid-size-btn');
 const pokemonGridElem = document.getElementById('pokemon-grid');
 
+// Fonction pour charger et afficher la version dynamiquement
+async function loadAndDisplayVersion() {
+    try {
+        const response = await fetch('version.json');
+        if (!response.ok) {
+            throw new Error('Impossible de charger le fichier version.json');
+        }
+        const versionData = await response.json();
+        const footerText = document.querySelector('.footer-text');
+        if (footerText) {
+            footerText.textContent = `Pokédex National © 2025 – par Locktix v${versionData.version}`;
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement de la version:', error);
+        // En cas d'erreur, on garde la version par défaut
+        const footerText = document.querySelector('.footer-text');
+        if (footerText) {
+            footerText.textContent = 'Pokédex National © 2025 – par Locktix v1.2.7';
+        }
+    }
+}
+
 // Configuration des tailles de grille
 const gridSizes = [
     { size: 16, cols: 4, label: '4 x 4' },
@@ -144,6 +166,9 @@ async function fetchFrenchPokemonNames() {
 // Initialisation
 async function init() {
     try {
+        // Charger et afficher la version dynamiquement
+        await loadAndDisplayVersion();
+        
         let pokemonListCache = localStorage.getItem('pokemonListFR');
         if (pokemonListCache) {
             pokemonList = JSON.parse(pokemonListCache);
