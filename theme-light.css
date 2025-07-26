@@ -335,20 +335,20 @@ body {
 .header-content {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xl);
+    gap: var(--spacing-md);
 }
 
 .user-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
 }
 
 .user-avatar {
@@ -408,7 +408,7 @@ body {
 
 .user-actions {
     display: flex;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     align-items: center;
 }
 
@@ -1587,10 +1587,6 @@ body {
     gap: var(--spacing-lg);
 }
 
-.stats-section {
-    margin-bottom: var(--spacing-xl);
-}
-
 .stats-section-title {
     color: white;
     font-size: 1.3rem;
@@ -1752,7 +1748,7 @@ body {
     }
     
     .header-content {
-        gap: var(--spacing-lg);
+        gap: var(--spacing-md);
     }
     
     .user-section {
