@@ -147,12 +147,9 @@
                     
                     <div class="grid-controls">
                         <div class="grid-size-selector">
-                            <label for="grid-size-select" class="grid-label">Taille :</label>
-                            <select id="grid-size-select" class="grid-select">
-                                <option value="16" selected>4 x 4</option>
-                                <option value="9">3 x 3</option>
-                                <option value="4">2 x 2</option>
-                            </select>
+                            <button id="grid-size-btn" class="grid-size-btn">
+                                <span class="grid-size-text">Taille : 4 x 4</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -305,13 +302,7 @@
                         </button>
                     </div>
                     
-                    <div class="setting-item">
-                        <label class="setting-label">
-                            <span class="setting-icon">🔧</span>
-                            <span class="setting-text">Mode maintenance</span>
-                        </label>
-                        <input type="checkbox" id="maintenance-mode" class="toggle-switch">
-                    </div>
+
                     
                     <div class="setting-item">
                         <label class="setting-label">

@@ -43,47 +43,65 @@ let allUsersList = [];
 let filteredUsersList = [];
 
 // Ajout : gestion du sélecteur de taille de grille
-const gridSizeSelect = document.getElementById('grid-size-select');
+const gridSizeBtn = document.getElementById('grid-size-btn');
 const pokemonGridElem = document.getElementById('pokemon-grid');
+
+// Configuration des tailles de grille
+const gridSizes = [
+    { size: 16, cols: 4, label: '4 x 4' },
+    { size: 9, cols: 3, label: '3 x 3' },
+    { size: 4, cols: 2, label: '2 x 2' }
+];
+let currentGridSizeIndex = 0;
+
 function updateGridColumns(size) {
     if (!pokemonGridElem) return;
-    let cols = 4;
-    let label = '4 x 4';
-    if (size === 9) { cols = 3; label = '3 x 3'; }
-    if (size === 4) { cols = 2; label = '2 x 2'; }
-    pokemonGridElem.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    // Mettre à jour l'affichage de la taille de la grille
-    const gridSizeLabel = document.getElementById('grid-size-label');
-    if (gridSizeLabel) gridSizeLabel.textContent = label;
+    const gridConfig = gridSizes.find(config => config.size === size);
+    if (gridConfig) {
+        pokemonGridElem.style.gridTemplateColumns = `repeat(${gridConfig.cols}, 1fr)`;
+        // Mettre à jour le texte du bouton
+        const gridSizeText = document.querySelector('.grid-size-text');
+        if (gridSizeText) {
+            gridSizeText.textContent = `Taille : ${gridConfig.label}`;
+        }
+    }
 }
-if (gridSizeSelect) {
+
+function cycleGridSize() {
+    currentGridSizeIndex = (currentGridSizeIndex + 1) % gridSizes.length;
+    const newConfig = gridSizes[currentGridSizeIndex];
+    
+    POKEMON_PER_PAGE = newConfig.size;
+    TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
+    currentPage = 1;
+    localStorage.setItem('gridSize', newConfig.size);
+    updateGridColumns(newConfig.size);
+    displayCurrentPage();
+    updateStats();
+    
+    // Mettre à jour le texte de pagination
+    const pageInfo = document.querySelector('.page-info');
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${currentPage} / ${TOTAL_PAGES}`;
+    }
+}
+
+if (gridSizeBtn) {
     // Charger la préférence depuis le localStorage
     const savedGridSize = localStorage.getItem('gridSize');
     let initialSize = 16;
     if (savedGridSize && (savedGridSize === '16' || savedGridSize === '9' || savedGridSize === '4')) {
-        gridSizeSelect.value = savedGridSize;
         initialSize = parseInt(savedGridSize, 10);
+        // Trouver l'index correspondant
+        currentGridSizeIndex = gridSizes.findIndex(config => config.size === initialSize);
+        if (currentGridSizeIndex === -1) currentGridSizeIndex = 0;
         POKEMON_PER_PAGE = initialSize;
         TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
     }
     updateGridColumns(initialSize);
-    gridSizeSelect.addEventListener('change', function() {
-        const newSize = parseInt(this.value, 10);
-        if ([16,9,4].includes(newSize)) {
-            POKEMON_PER_PAGE = newSize;
-            TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
-            currentPage = 1;
-            localStorage.setItem('gridSize', newSize);
-            updateGridColumns(newSize);
-            displayCurrentPage();
-            updateStats();
-            // Mettre à jour le texte de pagination
-            const pageInfo = document.querySelector('.page-info');
-            if (pageInfo) {
-                pageInfo.textContent = `Page ${currentPage} / ${TOTAL_PAGES}`;
-            }
-        }
-    });
+    
+    // Ajouter l'événement de clic
+    gridSizeBtn.addEventListener('click', cycleGridSize);
 }
 
 // Fonction pour récupérer tous les noms de Pokémon en français depuis PokéAPI
@@ -174,12 +192,6 @@ function initAuth() {
             showApp();
             await loadUserData();
             await loadUserRole(); // Charger le rôle de l'utilisateur
-            
-            // Vérifier le mode maintenance après avoir chargé le rôle
-            const canAccess = await checkMaintenanceMode();
-            if (!canAccess) {
-                return; // Arrêter ici si en maintenance
-            }
             
             setupEventListeners();
             setupSettingsModal(); // Configurer le modal des paramètres
@@ -1348,12 +1360,7 @@ function setupSettingsModal() {
 }
 
 function loadSettings() {
-    const maintenanceModeToggle = document.getElementById('maintenance-mode');
-    
-    if (maintenanceModeToggle) {
-        const isMaintenance = localStorage.getItem('maintenanceMode') === 'true';
-        maintenanceModeToggle.checked = isMaintenance;
-    }
+
 }
 
 // ===== FONCTIONNALITÉS ADMIN =====
@@ -1378,11 +1385,7 @@ function setupAdminEventListeners() {
         resetUserProgressBtn.addEventListener('click', resetUserProgress);
     }
     
-    // Mode maintenance
-    const maintenanceModeToggle = document.getElementById('maintenance-mode');
-    if (maintenanceModeToggle) {
-        maintenanceModeToggle.addEventListener('change', toggleMaintenanceMode);
-    }
+
     
     // Export des données
     const exportDataBtn = document.getElementById('export-data');
@@ -1668,39 +1671,7 @@ async function resetUserProgress() {
     }
 }
 
-// Basculer le mode maintenance
-async function toggleMaintenanceMode() {
-    if (!hasPermission('manage_users')) {
-        showNotification('Accès refusé', 'error');
-        return;
-    }
-    
-    const maintenanceModeToggle = document.getElementById('maintenance-mode');
-    const isMaintenance = maintenanceModeToggle.checked;
-    
-    try {
-        // Sauvegarder l'état de maintenance dans Firestore pour tous les utilisateurs
-        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
-        await setDoc(doc(window.db, 'app', 'maintenance'), {
-            isMaintenance: isMaintenance,
-            updatedBy: currentUser.uid,
-            updatedAt: new Date()
-        });
-        
-        localStorage.setItem('maintenanceMode', isMaintenance);
-        showNotification(`Mode maintenance ${isMaintenance ? 'activé' : 'désactivé'}`, 'info');
-        
-        // Si on désactive le mode maintenance, recharger la page pour tous
-        if (!isMaintenance) {
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        }
-    } catch (error) {
-        console.error('Erreur lors du changement de mode maintenance:', error);
-        showNotification('Erreur lors du changement de mode maintenance', 'error');
-    }
-}
+
 
 // Exporter toutes les données
 async function exportAllData() {
@@ -1750,54 +1721,9 @@ async function exportAllData() {
     }
 }
 
-// Vérifier le mode maintenance
-async function checkMaintenanceMode() {
-    try {
-        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
-        const maintenanceDoc = await getDoc(doc(window.db, 'app', 'maintenance'));
-        
-        if (maintenanceDoc.exists()) {
-            const maintenanceData = maintenanceDoc.data();
-            if (maintenanceData.isMaintenance && userRole !== 'admin') {
-                // Bloquer l'accès pour les non-admins
-                showMaintenanceScreen();
-                return false;
-            }
-        }
-        return true;
-    } catch (error) {
-        console.error('Erreur lors de la vérification du mode maintenance:', error);
-        return true; // En cas d'erreur, on laisse passer
-    }
-}
 
-// Afficher l'écran de maintenance
-function showMaintenanceScreen() {
-    // Masquer l'app et l'auth
-    document.getElementById('app-container').style.display = 'none';
-    document.getElementById('auth-container').style.display = 'none';
-    
-    // Créer l'écran de maintenance
-    const maintenanceScreen = document.createElement('div');
-    maintenanceScreen.id = 'maintenance-screen';
-    maintenanceScreen.innerHTML = `
-        <div class="maintenance-container">
-            <div class="maintenance-content">
-                <h1>🔧 Maintenance en cours</h1>
-                <p>L'application est actuellement en maintenance.</p>
-                <p>Nous serons de retour bientôt !</p>
-                <div class="maintenance-info">
-                    <p>🕐 Dernière mise à jour : ${new Date().toLocaleString('fr-FR')}</p>
-                </div>
-                <button onclick="window.location.reload()" class="maintenance-btn">
-                    🔄 Actualiser
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(maintenanceScreen);
-}
+
+
 
 // Configurer les sélecteurs de rôle
 function setupRoleBadgeClickHandlers() {
