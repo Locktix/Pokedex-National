@@ -964,43 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-    // Gestion de la modale Pokédex National
-    const openDocsBtn = document.getElementById('open-pokedex-docs');
-    const docsModal = document.getElementById('pokedex-docs-modal');
-    const closeDocsBtn = document.getElementById('close-pokedex-docs');
-    if (openDocsBtn && docsModal && closeDocsBtn) {
-        openDocsBtn.addEventListener('click', () => {
-            docsModal.style.display = 'flex';
-        });
-        closeDocsBtn.addEventListener('click', () => {
-            docsModal.style.display = 'none';
-        });
-        docsModal.addEventListener('click', (e) => {
-            // Ne ferme pas la modale principale si la sous-modale est ouverte
-            const binderModal = document.getElementById('binder-choice-modal');
-            if (e.target === docsModal && (!binderModal || binderModal.style.display === 'none')) {
-                docsModal.style.display = 'none';
-            }
-        });
-    }
 
-    // Gestion de la sous-modale choix classeur
-    const chooseBinderBtn = document.getElementById('choose-binder-btn');
-    const binderModal = document.getElementById('binder-choice-modal');
-    const closeBinderBtn = document.getElementById('close-binder-choice');
-    if (chooseBinderBtn && binderModal && closeBinderBtn) {
-        chooseBinderBtn.addEventListener('click', () => {
-            binderModal.style.display = 'flex';
-        });
-        closeBinderBtn.addEventListener('click', () => {
-            binderModal.style.display = 'none';
-        });
-        binderModal.addEventListener('click', (e) => {
-            if (e.target === binderModal) {
-                binderModal.style.display = 'none';
-            }
-        });
-    }
 });
 
 // Empêcher le rechargement de la page lors de la soumission des formulaires
