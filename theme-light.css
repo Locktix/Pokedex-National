@@ -783,18 +783,18 @@ body {
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
     color: white;
     font-family: var(--font-primary);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
 }
 
 .grid-size-btn:hover {
@@ -811,7 +811,7 @@ body {
 .grid-size-text {
     color: white;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 /* ===== GLASS MAIN CONTENT ===== */
@@ -1716,14 +1716,15 @@ body {
     }
     
     .user-section {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: var(--spacing-md);
+        justify-content: space-between;
     }
     
     .user-actions {
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        justify-content: flex-end;
     }
     
     .main-title {
@@ -1759,17 +1760,21 @@ body {
     }
     
     .controls-section {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
         gap: var(--spacing-md);
+        flex-wrap: wrap;
     }
     
     .filter-group {
-        justify-content: center;
+        display: flex;
+        gap: var(--spacing-md);
     }
     
     .grid-controls {
-        justify-content: center;
+        display: flex;
+        align-items: center;
     }
     
     .glass-main {
@@ -1820,6 +1825,41 @@ body {
         padding: var(--spacing-md);
     }
     
+    .user-section {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-sm);
+        justify-content: space-between;
+    }
+    
+    .user-actions {
+        width: auto;
+        justify-content: flex-end;
+        gap: var(--spacing-sm);
+    }
+    
+    .user-info {
+        gap: var(--spacing-sm);
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .avatar-icon {
+        font-size: 1.2rem;
+    }
+    
+    .user-email {
+        font-size: 0.9rem;
+    }
+    
+    .role-badge {
+        font-size: 0.7rem;
+        padding: var(--spacing-xs) var(--spacing-xs);
+    }
+    
     .main-title {
         font-size: 1.8rem;
     }
@@ -1852,7 +1892,30 @@ body {
         padding: var(--spacing-sm) var(--spacing-md);
     }
     
+    .controls-section {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+    
+    .filter-group {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+    
+    .grid-controls {
+        display: flex;
+        align-items: center;
+    }
+    
     .filter-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.9rem;
+    }
+    
+    .grid-size-btn {
         padding: var(--spacing-sm) var(--spacing-md);
         font-size: 0.9rem;
     }
