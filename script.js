@@ -523,6 +523,12 @@ function setupEventListeners() {
     if (randomPokemonBtn) {
         randomPokemonBtn.addEventListener('click', handleRandomPokemon);
     }
+    
+    // Event listener pour l'avatar
+    const userAvatar = document.getElementById('user-avatar');
+    if (userAvatar) {
+        userAvatar.addEventListener('click', showAvatarModal);
+    }
 }
 
 // Afficher la page courante avec animations
@@ -843,6 +849,9 @@ async function loadUserData() {
             capturedPokemon = new Set();
             currentFilter = 'all';
         }
+        
+        // Charger l'avatar de l'utilisateur
+        await loadUserAvatar();
     } catch (error) {
         console.error('Erreur lors du chargement des données utilisateur:', error);
         capturedPokemon = new Set();
@@ -1325,6 +1334,144 @@ async function goToPokemon(pokemonNumber) {
                 console.log(`[SEARCH] ERREUR: Carte non trouvée`);
             }
         }, 300);
+}
+
+// ===== GESTION AVATAR =====
+
+// Liste des avatars disponibles
+const availableAvatars = [
+    '👤', '👨', '👩', '🧑', '👦', '👧', '👶', '👴', '👵',
+    '🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎪', '🎫', '🎬',
+    '🐱', '🐶', '🐰', '🐼', '🐨', '🐯', '🦁', '🐸', '🐙',
+    '🌟', '⭐', '✨', '💫', '🌙', '☀️', '🌈', '🌊', '🔥',
+    '💎', '💍', '💐', '🌸', '🌺', '🌻', '🌼', '🌷', '🌹',
+    '⚡', '💥', '💢', '💦', '💨', '💧', '💩', '💤', '💢',
+    '🎵', '🎶', '🎸', '🎹', '🎺', '🎻', '🎤', '🎧', '🎼',
+    '🏆', '🏅', '🎖️', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏆'
+];
+
+let currentAvatar = '👤';
+let selectedAvatar = '👤';
+
+// Afficher le modal de sélection d'avatar
+function showAvatarModal() {
+    const modal = document.getElementById('avatar-modal');
+    const avatarGrid = document.getElementById('avatar-grid');
+    const saveBtn = document.getElementById('save-avatar');
+    const cancelBtn = document.getElementById('cancel-avatar');
+    const closeBtn = document.getElementById('close-avatar');
+    
+    if (!modal || !avatarGrid) return;
+    
+    // Charger l'avatar actuel
+    selectedAvatar = currentAvatar;
+    
+    // Générer la grille d'avatars
+    avatarGrid.innerHTML = availableAvatars.map(avatar => `
+        <div class="avatar-option ${avatar === currentAvatar ? 'selected' : ''}" 
+             data-avatar="${avatar}" 
+             onclick="selectAvatar('${avatar}')">
+            ${avatar}
+        </div>
+    `).join('');
+    
+    // Afficher le modal
+    modal.style.display = 'flex';
+    
+    // Event listeners pour les boutons
+    if (saveBtn) {
+        saveBtn.onclick = saveAvatar;
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.onclick = closeAvatarModal;
+    }
+    
+    if (closeBtn) {
+        closeBtn.onclick = closeAvatarModal;
+    }
+    
+    // Fermer en cliquant en dehors
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            closeAvatarModal();
+        }
+    };
+}
+
+// Sélectionner un avatar
+function selectAvatar(avatar) {
+    selectedAvatar = avatar;
+    
+    // Mettre à jour la sélection visuelle
+    document.querySelectorAll('.avatar-option').forEach(option => {
+        option.classList.remove('selected');
+        if (option.dataset.avatar === avatar) {
+            option.classList.add('selected');
+        }
+    });
+}
+
+// Sauvegarder l'avatar
+async function saveAvatar() {
+    if (selectedAvatar === currentAvatar) {
+        closeAvatarModal();
+        return;
+    }
+    
+    currentAvatar = selectedAvatar;
+    
+    // Mettre à jour l'affichage
+    const avatarIcon = document.getElementById('avatar-icon');
+    if (avatarIcon) {
+        avatarIcon.textContent = currentAvatar;
+    }
+    
+    // Sauvegarder dans Firebase
+    try {
+        const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        await updateDoc(doc(window.db, 'users', currentUser.uid), {
+            avatar: currentAvatar,
+            lastSaved: new Date()
+        });
+        console.log('[AVATAR] Avatar sauvegardé:', currentAvatar);
+        showNotification('Avatar mis à jour ! 🎨', 'success');
+    } catch (error) {
+        console.error('[AVATAR] Erreur lors de la sauvegarde:', error);
+        showNotification('Erreur lors de la sauvegarde de l\'avatar', 'error');
+    }
+    
+    closeAvatarModal();
+}
+
+// Fermer le modal d'avatar
+function closeAvatarModal() {
+    const modal = document.getElementById('avatar-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Charger l'avatar depuis Firebase
+async function loadUserAvatar() {
+    if (!currentUser) return;
+    
+    try {
+        const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const userDoc = await getDoc(doc(window.db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            currentAvatar = userData.avatar || '👤';
+            
+            // Mettre à jour l'affichage
+            const avatarIcon = document.getElementById('avatar-icon');
+            if (avatarIcon) {
+                avatarIcon.textContent = currentAvatar;
+            }
+        }
+    } catch (error) {
+        console.error('[AVATAR] Erreur lors du chargement:', error);
+    }
 }
 
 // Afficher un message de bienvenue

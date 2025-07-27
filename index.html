@@ -66,8 +66,8 @@
             <div class="header-content">
                 <div class="user-section">
                     <div class="user-info">
-                        <div class="user-avatar">
-                            <span class="avatar-icon">👤</span>
+                        <div class="user-avatar" id="user-avatar" title="Cliquer pour changer l'avatar">
+                            <span class="avatar-icon" id="avatar-icon">👤</span>
                         </div>
                         <div class="user-details">
                             <span class="user-email" id="user-email"></span>
@@ -371,6 +371,36 @@
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sélection Avatar -->
+    <div id="avatar-modal" class="modal" style="display: none;">
+        <div class="modal-content glass-modal avatar-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <span class="modal-icon">👤</span>
+                    <span class="modal-text">Choisir un avatar</span>
+                </h3>
+                <button id="close-avatar" class="close-btn">
+                    <span class="close-icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-grid" id="avatar-grid">
+                    <!-- Les avatars seront générés ici -->
+                </div>
+                <div class="avatar-actions">
+                    <button id="save-avatar" class="glass-btn primary">
+                        <span class="btn-icon">💾</span>
+                        <span class="btn-text">Sauvegarder</span>
+                    </button>
+                    <button id="cancel-avatar" class="glass-btn secondary">
+                        <span class="btn-icon">❌</span>
+                        <span class="btn-text">Annuler</span>
+                    </button>
                 </div>
             </div>
         </div>
