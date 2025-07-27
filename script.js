@@ -1060,9 +1060,29 @@ function applyCurrentFilter() {
 // Fonctions de recherche refaites
 function handleSearchInput() {
     const query = searchInput.value.trim();
+    const searchContainer = searchInput.closest('.search-container');
+    
+    // Animation de typing
+    if (query.length > 0) {
+        searchContainer.classList.add('typing');
+        // Retirer la classe après l'animation
+        setTimeout(() => {
+            searchContainer.classList.remove('typing');
+        }, 600);
+    }
     
     // Afficher le bouton de suppression si il y a du texte
-    clearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+    if (query.length > 0) {
+        clearSearchBtn.style.display = 'flex';
+        setTimeout(() => {
+            clearSearchBtn.classList.add('show');
+        }, 10);
+    } else {
+        clearSearchBtn.classList.remove('show');
+        setTimeout(() => {
+            clearSearchBtn.style.display = 'none';
+        }, 300);
+    }
     
     // Recherche en temps réel avec délai
     if (searchTimeout) {
@@ -1218,22 +1238,35 @@ function showSearchResults() {
     if (toolbar) {
         toolbar.classList.add('expanded');
     }
+    
+    // Trigger the show animation after a small delay
+    setTimeout(() => {
+        searchResults.classList.add('show');
+    }, 10);
 }
 
 function hideSearchResults() {
-    searchResults.style.display = 'none';
+    searchResults.classList.remove('show');
     selectedResultIndex = -1;
     // Remove the expanded class from the toolbar
     const toolbar = document.querySelector('.glass-toolbar');
     if (toolbar) {
         toolbar.classList.remove('expanded');
     }
+    
+    // Hide the element after the animation completes
+    setTimeout(() => {
+        searchResults.style.display = 'none';
+    }, 400);
 }
 
 function clearSearch() {
     searchInput.value = '';
     hideSearchResults();
-    clearSearchBtn.style.display = 'none';
+    clearSearchBtn.classList.remove('show');
+    setTimeout(() => {
+        clearSearchBtn.style.display = 'none';
+    }, 300);
     searchInput.focus();
 }
 
