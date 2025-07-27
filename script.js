@@ -517,6 +517,12 @@ function setupEventListeners() {
     showAllBtn.addEventListener('click', () => setFilter('all'));
     showCapturedBtn.addEventListener('click', () => setFilter('captured'));
     // showMissingBtn supprimé
+    
+    // Event listener pour le Pokémon aléatoire
+    const randomPokemonBtn = document.getElementById('random-pokemon-btn');
+    if (randomPokemonBtn) {
+        randomPokemonBtn.addEventListener('click', handleRandomPokemon);
+    }
 }
 
 // Afficher la page courante avec animations
@@ -1327,6 +1333,109 @@ window.addEventListener('load', () => {
         showNotification('Bienvenue dans le Pokédex National ! 🎮', 'info');
     }, 1000);
 });
+
+// Fonction pour gérer le Pokémon aléatoire
+async function handleRandomPokemon() {
+    const randomBtn = document.getElementById('random-pokemon-btn');
+    const modal = document.getElementById('random-pokemon-modal');
+    const spinner = document.querySelector('.random-pokemon-spinner');
+    const result = document.querySelector('.random-pokemon-result');
+    
+    if (!randomBtn || !modal) return;
+    
+    // Afficher le modal avec le spinner
+    modal.style.display = 'flex';
+    spinner.style.display = 'flex';
+    result.style.display = 'none';
+    
+    // Générer un numéro de Pokémon aléatoire
+    const randomPokemonNumber = Math.floor(Math.random() * TOTAL_POKEMON) + 1;
+    const pokemonName = pokemonList[randomPokemonNumber - 1];
+    
+    console.log(`[RANDOM] Pokémon aléatoire sélectionné : #${randomPokemonNumber} - ${pokemonName}`);
+    
+    // Attendre 2 secondes pour l'animation du spinner
+    setTimeout(async () => {
+        // Cacher le spinner et afficher le résultat
+        spinner.style.display = 'none';
+        result.style.display = 'flex';
+        
+        // Remplir les informations du Pokémon
+        document.getElementById('random-pokemon-number').textContent = `#${randomPokemonNumber.toString().padStart(3, '0')}`;
+        document.getElementById('random-pokemon-name').textContent = pokemonName;
+        
+        // Charger l'image du Pokémon
+        const imageElement = document.getElementById('random-pokemon-image');
+        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${randomPokemonNumber}.png`;
+        
+        const img = new Image();
+        img.onload = () => {
+            imageElement.style.backgroundImage = `url(${imageUrl})`;
+        };
+        img.onerror = () => {
+            console.warn(`Impossible de charger l'image pour le Pokémon #${randomPokemonNumber}`);
+            imageElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        };
+        img.src = imageUrl;
+        
+        // Configurer les boutons d'action
+        setupRandomPokemonActions(randomPokemonNumber);
+        
+    }, 2000);
+}
+
+// Configurer les actions du Pokémon aléatoire
+function setupRandomPokemonActions(pokemonNumber) {
+    const captureBtn = document.getElementById('capture-random-pokemon');
+    const goToBtn = document.getElementById('go-to-random-pokemon');
+    const closeBtn = document.getElementById('close-random-pokemon');
+    const modal = document.getElementById('random-pokemon-modal');
+    
+    // Bouton capturer
+    if (captureBtn) {
+        captureBtn.onclick = async () => {
+            const wasCaptured = capturedPokemon.has(pokemonNumber);
+            if (!wasCaptured) {
+                capturedPokemon.add(pokemonNumber);
+                updatePokemonCard(pokemonNumber);
+                updateStats();
+                try {
+                    await saveUserDataImmediate();
+                    showNotification(`🎉 Pokémon #${pokemonNumber} capturé !`, 'success');
+                } catch (error) {
+                    saveUserData();
+                }
+            } else {
+                showNotification(`✅ Pokémon #${pokemonNumber} déjà capturé !`, 'info');
+            }
+            modal.style.display = 'none';
+        };
+    }
+    
+    // Bouton aller à la grille
+    if (goToBtn) {
+        goToBtn.onclick = async () => {
+            modal.style.display = 'none';
+            await goToPokemon(pokemonNumber);
+        };
+    }
+    
+    // Bouton fermer
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
+    
+    // Fermer en cliquant en dehors du modal
+    if (modal) {
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    }
+}
 
 
 

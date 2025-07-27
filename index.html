@@ -152,6 +152,12 @@
                                 <span class="grid-size-text">Taille : 4 x 4</span>
                             </button>
                         </div>
+                        <div class="random-pokemon-selector">
+                            <button id="random-pokemon-btn" class="filter-btn" title="Pokémon aléatoire">
+                                <span class="filter-icon">🎲</span>
+                                <span class="filter-text">Aléatoire</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -325,6 +331,46 @@
                 <div id="user-collection-empty" style="display:none;" class="empty-message">
                     <span class="empty-icon">🎣</span>
                     <span class="empty-text">Aucun Pokémon capturé.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pokémon Aléatoire -->
+    <div id="random-pokemon-modal" class="modal" style="display: none;">
+        <div class="modal-content glass-modal random-pokemon-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <span class="modal-icon">🎲</span>
+                    <span class="modal-text">Pokémon Aléatoire</span>
+                </h3>
+                <button id="close-random-pokemon" class="close-btn">
+                    <span class="close-icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="random-pokemon-content" class="random-pokemon-content">
+                    <div class="random-pokemon-spinner">
+                        <div class="spinner-dice">🎲</div>
+                        <div class="spinner-text">Sélection en cours...</div>
+                    </div>
+                    <div class="random-pokemon-result" style="display: none;">
+                        <div class="random-pokemon-image" id="random-pokemon-image"></div>
+                        <div class="random-pokemon-info">
+                            <div class="random-pokemon-number" id="random-pokemon-number"></div>
+                            <div class="random-pokemon-name" id="random-pokemon-name"></div>
+                        </div>
+                        <div class="random-pokemon-actions">
+                            <button id="capture-random-pokemon" class="glass-btn primary">
+                                <span class="btn-icon">🎣</span>
+                                <span class="btn-text">Capturer</span>
+                            </button>
+                            <button id="go-to-random-pokemon" class="glass-btn secondary">
+                                <span class="btn-icon">📍</span>
+                                <span class="btn-text">Voir dans la grille</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

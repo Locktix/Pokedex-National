@@ -874,6 +874,111 @@ body {
     font-size: 0.95rem;
 }
 
+/* ===== BOUTON POKÉMON ALÉATOIRE ===== */
+.random-pokemon-selector {
+    display: flex;
+    align-items: center;
+}
+
+/* ===== MODAL POKÉMON ALÉATOIRE ===== */
+.random-pokemon-modal {
+    max-width: 500px;
+    width: 90vw;
+}
+
+.random-pokemon-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-lg);
+}
+
+.random-pokemon-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+}
+
+.spinner-dice {
+    font-size: 4rem;
+    animation: diceSpin 1s ease-in-out infinite;
+}
+
+.spinner-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.random-pokemon-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    width: 100%;
+}
+
+.random-pokemon-image {
+    width: 200px;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.random-pokemon-image:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.random-pokemon-info {
+    text-align: center;
+    gap: var(--spacing-sm);
+}
+
+.random-pokemon-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: var(--font-mono);
+    margin-bottom: var(--spacing-sm);
+}
+
+.random-pokemon-name {
+    font-size: 2rem;
+    font-weight: 600;
+    color: white;
+    text-transform: capitalize;
+}
+
+.random-pokemon-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+@keyframes diceSpin {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+    }
+    25% {
+        transform: rotate(90deg) scale(1.1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+    75% {
+        transform: rotate(270deg) scale(1.1);
+    }
+}
+
 /* ===== GLASS MAIN CONTENT ===== */
 
 .glass-main {
