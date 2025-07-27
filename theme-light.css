@@ -381,41 +381,95 @@ body {
     width: 90vw;
 }
 
-.avatar-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: var(--spacing-md);
+.avatar-search-container {
     padding: var(--spacing-lg);
-    max-height: 400px;
-    overflow-y: auto;
+    border-bottom: 1px solid var(--glass-border);
 }
 
-.avatar-option {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+.avatar-search-input {
+    width: 100%;
+    padding: var(--spacing-md);
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    border: 2px solid var(--glass-border);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.avatar-search-input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.avatar-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.avatar-results-grid {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+}
+
+.avatar-search-hint {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    margin: 0;
+}
+
+.avatar-no-results {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+.avatar-option {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 2rem;
+    border: 2px solid transparent;
+    margin-bottom: var(--spacing-sm);
 }
 
 .avatar-option:hover {
-    transform: scale(1.1);
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: var(--shadow-md);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateX(5px);
 }
 
 .avatar-option.selected {
+    background: rgba(255, 107, 107, 0.2);
     border-color: var(--accent-gradient);
     box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
-    transform: scale(1.05);
+}
+
+.avatar-pokemon-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    flex: 1;
+}
+
+.avatar-pokemon-number {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: var(--font-mono);
+}
+
+.avatar-pokemon-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    text-transform: capitalize;
 }
 
 .avatar-actions {
@@ -425,6 +479,21 @@ body {
     padding: var(--spacing-lg);
     border-top: 1px solid var(--glass-border);
     margin-top: var(--spacing-lg);
+}
+
+.avatar-preview-selected {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(255, 107, 107, 0.1);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+}
+
+.avatar-preview-selected span {
+    color: white;
+    font-weight: 600;
 }
 
 .user-details {

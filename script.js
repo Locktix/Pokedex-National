@@ -1338,20 +1338,10 @@ async function goToPokemon(pokemonNumber) {
 
 // ===== GESTION AVATAR =====
 
-// Liste des avatars disponibles
-const availableAvatars = [
-    '👤', '👨', '👩', '🧑', '👦', '👧', '👶', '👴', '👵',
-    '🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎪', '🎫', '🎬',
-    '🐱', '🐶', '🐰', '🐼', '🐨', '🐯', '🦁', '🐸', '🐙',
-    '🌟', '⭐', '✨', '💫', '🌙', '☀️', '🌈', '🌊', '🔥',
-    '💎', '💍', '💐', '🌸', '🌺', '🌻', '🌼', '🌷', '🌹',
-    '⚡', '💥', '💢', '💦', '💨', '💧', '💩', '💤', '💢',
-    '🎵', '🎶', '🎸', '🎹', '🎺', '🎻', '🎤', '🎧', '🎼',
-    '🏆', '🏅', '🎖️', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏆'
-];
-
-let currentAvatar = '👤';
-let selectedAvatar = '👤';
+let currentAvatar = null; // numéro du Pokémon ou null
+let selectedAvatar = null;
+let avatarSearchResults = [];
+let avatarSearchTimeout = null;
 
 // Afficher le modal de sélection d'avatar
 function showAvatarModal() {
@@ -1363,17 +1353,28 @@ function showAvatarModal() {
     
     if (!modal || !avatarGrid) return;
     
-    // Charger l'avatar actuel
     selectedAvatar = currentAvatar;
     
-    // Générer la grille d'avatars
-    avatarGrid.innerHTML = availableAvatars.map(avatar => `
-        <div class="avatar-option ${avatar === currentAvatar ? 'selected' : ''}" 
-             data-avatar="${avatar}" 
-             onclick="selectAvatar('${avatar}')">
-            ${avatar}
+    // Créer la barre de recherche et la grille de résultats
+    avatarGrid.innerHTML = `
+        <div class="avatar-search-container">
+            <input type="text" id="avatar-search-input" placeholder="Rechercher un Pokémon..." class="avatar-search-input">
         </div>
-    `).join('');
+        <div id="avatar-results-grid" class="avatar-results-grid">
+            <p class="avatar-search-hint">Tapez le nom d'un Pokémon pour commencer...</p>
+        </div>
+    `;
+    
+    // Event listeners pour la recherche
+    const searchInput = document.getElementById('avatar-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleAvatarSearch);
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && avatarSearchResults.length > 0) {
+                selectAvatar(avatarSearchResults[0].number);
+            }
+        });
+    }
     
     // Afficher le modal
     modal.style.display = 'flex';
@@ -1397,19 +1398,99 @@ function showAvatarModal() {
             closeAvatarModal();
         }
     };
+    
+    // Focus sur la barre de recherche
+    setTimeout(() => {
+        if (searchInput) searchInput.focus();
+    }, 100);
+}
+
+// Gérer la recherche d'avatars
+function handleAvatarSearch() {
+    const query = document.getElementById('avatar-search-input').value.trim();
+    
+    if (avatarSearchTimeout) {
+        clearTimeout(avatarSearchTimeout);
+    }
+    
+    if (query.length === 0) {
+        displayAvatarResults([]);
+        return;
+    }
+    
+    avatarSearchTimeout = setTimeout(() => {
+        performAvatarSearch(query);
+    }, 300);
+}
+
+// Effectuer la recherche d'avatars
+function performAvatarSearch(query) {
+    const searchTerm = query.toLowerCase();
+    
+    // Rechercher dans la liste des Pokémon
+    const results = pokemonList
+        .map((name, index) => ({
+            number: index + 1,
+            name: name
+        }))
+        .filter(pokemon => 
+            pokemon.name.toLowerCase().includes(searchTerm) ||
+            pokemon.number.toString().includes(searchTerm)
+        )
+        .slice(0, 20); // Limiter à 20 résultats
+    
+    avatarSearchResults = results;
+    displayAvatarResults(results);
+}
+
+// Afficher les résultats de recherche d'avatars
+function displayAvatarResults(results) {
+    const resultsGrid = document.getElementById('avatar-results-grid');
+    
+    if (results.length === 0) {
+        resultsGrid.innerHTML = '<p class="avatar-no-results">Aucun Pokémon trouvé</p>';
+        return;
+    }
+    
+    resultsGrid.innerHTML = results.map(pokemon => `
+        <div class="avatar-option ${pokemon.number === currentAvatar ? 'selected' : ''}" 
+             data-avatar="${pokemon.number}" 
+             onclick="selectAvatar(${pokemon.number})">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.number}.png" 
+                 alt="Avatar Pokémon #${pokemon.number}" 
+                 style="width:64px;height:64px;object-fit:contain;" />
+            <div class="avatar-pokemon-info">
+                <div class="avatar-pokemon-number">#${pokemon.number.toString().padStart(3, '0')}</div>
+                <div class="avatar-pokemon-name">${pokemon.name}</div>
+            </div>
+        </div>
+    `).join('');
 }
 
 // Sélectionner un avatar
-function selectAvatar(avatar) {
-    selectedAvatar = avatar;
+function selectAvatar(num) {
+    selectedAvatar = num;
     
     // Mettre à jour la sélection visuelle
     document.querySelectorAll('.avatar-option').forEach(option => {
         option.classList.remove('selected');
-        if (option.dataset.avatar === avatar) {
+        if (parseInt(option.dataset.avatar) === num) {
             option.classList.add('selected');
         }
     });
+    
+    // Afficher un aperçu de la sélection
+    const preview = document.getElementById('avatar-preview');
+    if (preview) {
+        preview.innerHTML = `
+            <div class="avatar-preview-selected">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${num}.png" 
+                     alt="Avatar sélectionné" 
+                     style="width:48px;height:48px;object-fit:contain;" />
+                <span>Pokémon #${num} sélectionné</span>
+            </div>
+        `;
+    }
 }
 
 // Sauvegarder l'avatar
@@ -1420,24 +1501,16 @@ async function saveAvatar() {
     }
     
     currentAvatar = selectedAvatar;
+    updateAvatarDisplay();
     
-    // Mettre à jour l'affichage
-    const avatarIcon = document.getElementById('avatar-icon');
-    if (avatarIcon) {
-        avatarIcon.textContent = currentAvatar;
-    }
-    
-    // Sauvegarder dans Firebase
     try {
         const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
         await updateDoc(doc(window.db, 'users', currentUser.uid), {
             avatar: currentAvatar,
             lastSaved: new Date()
         });
-        console.log('[AVATAR] Avatar sauvegardé:', currentAvatar);
         showNotification('Avatar mis à jour ! 🎨', 'success');
     } catch (error) {
-        console.error('[AVATAR] Erreur lors de la sauvegarde:', error);
         showNotification('Erreur lors de la sauvegarde de l\'avatar', 'error');
     }
     
@@ -1452,6 +1525,18 @@ function closeAvatarModal() {
     }
 }
 
+// Mettre à jour l'affichage de l'avatar
+function updateAvatarDisplay() {
+    const avatarIcon = document.getElementById('avatar-icon');
+    if (avatarIcon) {
+        if (currentAvatar) {
+            avatarIcon.innerHTML = `<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentAvatar}.png" alt="Avatar" style="width:32px;height:32px;object-fit:contain;" />`;
+        } else {
+            avatarIcon.innerHTML = `<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokéball" style="width:32px;height:32px;object-fit:contain;" />`;
+        }
+    }
+}
+
 // Charger l'avatar depuis Firebase
 async function loadUserAvatar() {
     if (!currentUser) return;
@@ -1461,130 +1546,15 @@ async function loadUserAvatar() {
         const userDoc = await getDoc(doc(window.db, 'users', currentUser.uid));
         if (userDoc.exists()) {
             const userData = userDoc.data();
-            currentAvatar = userData.avatar || '👤';
-            
-            // Mettre à jour l'affichage
-            const avatarIcon = document.getElementById('avatar-icon');
-            if (avatarIcon) {
-                avatarIcon.textContent = currentAvatar;
-            }
+            currentAvatar = userData.avatar || null;
+            updateAvatarDisplay();
         }
     } catch (error) {
-        console.error('[AVATAR] Erreur lors du chargement:', error);
+        // fallback
+        currentAvatar = null;
+        updateAvatarDisplay();
     }
 }
-
-// Afficher un message de bienvenue
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        showNotification('Bienvenue dans le Pokédex National ! 🎮', 'info');
-    }, 1000);
-});
-
-// Fonction pour gérer le Pokémon aléatoire
-async function handleRandomPokemon() {
-    const randomBtn = document.getElementById('random-pokemon-btn');
-    const modal = document.getElementById('random-pokemon-modal');
-    const spinner = document.querySelector('.random-pokemon-spinner');
-    const result = document.querySelector('.random-pokemon-result');
-    
-    if (!randomBtn || !modal) return;
-    
-    // Afficher le modal avec le spinner
-    modal.style.display = 'flex';
-    spinner.style.display = 'flex';
-    result.style.display = 'none';
-    
-    // Générer un numéro de Pokémon aléatoire
-    const randomPokemonNumber = Math.floor(Math.random() * TOTAL_POKEMON) + 1;
-    const pokemonName = pokemonList[randomPokemonNumber - 1];
-    
-    console.log(`[RANDOM] Pokémon aléatoire sélectionné : #${randomPokemonNumber} - ${pokemonName}`);
-    
-    // Attendre 2 secondes pour l'animation du spinner
-    setTimeout(async () => {
-        // Cacher le spinner et afficher le résultat
-        spinner.style.display = 'none';
-        result.style.display = 'flex';
-        
-        // Remplir les informations du Pokémon
-        document.getElementById('random-pokemon-number').textContent = `#${randomPokemonNumber.toString().padStart(3, '0')}`;
-        document.getElementById('random-pokemon-name').textContent = pokemonName;
-        
-        // Charger l'image du Pokémon
-        const imageElement = document.getElementById('random-pokemon-image');
-        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${randomPokemonNumber}.png`;
-        
-        const img = new Image();
-        img.onload = () => {
-            imageElement.style.backgroundImage = `url(${imageUrl})`;
-        };
-        img.onerror = () => {
-            console.warn(`Impossible de charger l'image pour le Pokémon #${randomPokemonNumber}`);
-            imageElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        };
-        img.src = imageUrl;
-        
-        // Configurer les boutons d'action
-        setupRandomPokemonActions(randomPokemonNumber);
-        
-    }, 2000);
-}
-
-// Configurer les actions du Pokémon aléatoire
-function setupRandomPokemonActions(pokemonNumber) {
-    const captureBtn = document.getElementById('capture-random-pokemon');
-    const goToBtn = document.getElementById('go-to-random-pokemon');
-    const closeBtn = document.getElementById('close-random-pokemon');
-    const modal = document.getElementById('random-pokemon-modal');
-    
-    // Bouton capturer
-    if (captureBtn) {
-        captureBtn.onclick = async () => {
-            const wasCaptured = capturedPokemon.has(pokemonNumber);
-            if (!wasCaptured) {
-                capturedPokemon.add(pokemonNumber);
-                updatePokemonCard(pokemonNumber);
-                updateStats();
-                try {
-                    await saveUserDataImmediate();
-                    showNotification(`🎉 Pokémon #${pokemonNumber} capturé !`, 'success');
-                } catch (error) {
-                    saveUserData();
-                }
-            } else {
-                showNotification(`✅ Pokémon #${pokemonNumber} déjà capturé !`, 'info');
-            }
-            modal.style.display = 'none';
-        };
-    }
-    
-    // Bouton aller à la grille
-    if (goToBtn) {
-        goToBtn.onclick = async () => {
-            modal.style.display = 'none';
-            await goToPokemon(pokemonNumber);
-        };
-    }
-    
-    // Bouton fermer
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            modal.style.display = 'none';
-        };
-    }
-    
-    // Fermer en cliquant en dehors du modal
-    if (modal) {
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        };
-    }
-}
-
-
 
 // ===== SYSTÈME DE RÔLES =====
 
@@ -1864,11 +1834,14 @@ function renderUsersTable(users) {
             const [jour, mois, annee] = dateStr.split('/');
             dateStr = `<span>${jour}/${mois}/${annee}</span>`;
         }
+        let avatarHtml = user.avatar ?
+            `<img class="user-card-avatar-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${user.avatar}.png" alt="Avatar" style="width:32px;height:32px;object-fit:contain;" />`
+            : `<img class="user-card-avatar-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokéball" style="width:32px;height:32px;object-fit:contain;" />`;
         html += `
         <div class="user-card" data-uid="${user.uid}">
             <div class="user-card-header">
                 <div class="user-card-avatar">
-                    <span class="user-card-avatar-icon">${user.avatar || '👤'}</span>
+                    ${avatarHtml}
                 </div>
                 <div class="user-card-info">
                     <span class="user-card-username">${user.username || 'N/A'}</span>
@@ -2158,4 +2131,116 @@ async function updateGridSize() {
     }
     
     showNotification(`Grille mise à jour : ${newSize} Pokémon par page`, 'success');
-} 
+}
+
+// Afficher un message de bienvenue
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        showNotification('Bienvenue dans le Pokédex National ! 🎮', 'info');
+    }, 1000);
+});
+
+// Fonction pour gérer le Pokémon aléatoire
+async function handleRandomPokemon() {
+    const randomBtn = document.getElementById('random-pokemon-btn');
+    const modal = document.getElementById('random-pokemon-modal');
+    const spinner = document.querySelector('.random-pokemon-spinner');
+    const result = document.querySelector('.random-pokemon-result');
+    
+    if (!randomBtn || !modal) return;
+    
+    // Afficher le modal avec le spinner
+    modal.style.display = 'flex';
+    spinner.style.display = 'flex';
+    result.style.display = 'none';
+    
+    // Générer un numéro de Pokémon aléatoire
+    const randomPokemonNumber = Math.floor(Math.random() * TOTAL_POKEMON) + 1;
+    const pokemonName = pokemonList[randomPokemonNumber - 1];
+    
+    console.log(`[RANDOM] Pokémon aléatoire sélectionné : #${randomPokemonNumber} - ${pokemonName}`);
+    
+    // Attendre 2 secondes pour l'animation du spinner
+    setTimeout(async () => {
+        // Cacher le spinner et afficher le résultat
+        spinner.style.display = 'none';
+        result.style.display = 'flex';
+        
+        // Remplir les informations du Pokémon
+        document.getElementById('random-pokemon-number').textContent = `#${randomPokemonNumber.toString().padStart(3, '0')}`;
+        document.getElementById('random-pokemon-name').textContent = pokemonName;
+        
+        // Charger l'image du Pokémon
+        const imageElement = document.getElementById('random-pokemon-image');
+        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${randomPokemonNumber}.png`;
+        
+        const img = new Image();
+        img.onload = () => {
+            imageElement.style.backgroundImage = `url(${imageUrl})`;
+        };
+        img.onerror = () => {
+            console.warn(`Impossible de charger l'image pour le Pokémon #${randomPokemonNumber}`);
+            imageElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        };
+        img.src = imageUrl;
+        
+        // Configurer les boutons d'action
+        setupRandomPokemonActions(randomPokemonNumber);
+        
+    }, 2000);
+}
+
+// Configurer les actions du Pokémon aléatoire
+function setupRandomPokemonActions(pokemonNumber) {
+    const captureBtn = document.getElementById('capture-random-pokemon');
+    const goToBtn = document.getElementById('go-to-random-pokemon');
+    const closeBtn = document.getElementById('close-random-pokemon');
+    const modal = document.getElementById('random-pokemon-modal');
+    
+    // Bouton capturer
+    if (captureBtn) {
+        captureBtn.onclick = async () => {
+            const wasCaptured = capturedPokemon.has(pokemonNumber);
+            if (!wasCaptured) {
+                capturedPokemon.add(pokemonNumber);
+                updatePokemonCard(pokemonNumber);
+                updateStats();
+                try {
+                    await saveUserDataImmediate();
+                    showNotification(`🎉 Pokémon #${pokemonNumber} capturé !`, 'success');
+                } catch (error) {
+                    saveUserData();
+                }
+            } else {
+                showNotification(`✅ Pokémon #${pokemonNumber} déjà capturé !`, 'info');
+            }
+            modal.style.display = 'none';
+        };
+    }
+    
+    // Bouton aller à la grille
+    if (goToBtn) {
+        goToBtn.onclick = async () => {
+            modal.style.display = 'none';
+            await goToPokemon(pokemonNumber);
+        };
+    }
+    
+    // Bouton fermer
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
+    
+    // Fermer en cliquant en dehors du modal
+    if (modal) {
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    }
+}
+
+// ===== SYSTÈME DE RÔLES ===== 
