@@ -2105,6 +2105,34 @@ body {
     100% { transform: scale(1); }
 }
 
+@keyframes searchHighlight {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    25% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 0 0 0 16px rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 1);
+    }
+    75% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+        border: 2px solid rgba(255, 255, 255, 0);
+    }
+}
+
 @keyframes slideInFromLeft {
     0% {
         opacity: 0;
@@ -2120,6 +2148,10 @@ body {
     animation: capturedPulse 0.6s ease-in-out;
 }
 
+.pokemon-card.search-highlight {
+    animation: searchHighlight 2s ease-in-out;
+    border-radius: var(--radius-lg);
+}
 
 
 /* ===== PAGINATION TRANSITIONS ===== */
@@ -2175,4 +2207,4 @@ body {
 ::-moz-selection {
     background: rgba(255, 255, 255, 0.3);
     color: white;
-} 
+}

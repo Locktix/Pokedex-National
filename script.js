@@ -1298,27 +1298,27 @@ async function goToPokemon(pokemonNumber) {
     // Mettre à jour les statistiques
     updateStats();
     
-    // Attendre que la carte soit bien présente dans le DOM puis la mettre en surbrillance
-    setTimeout(() => {
-        const pokemonCard = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
-        if (pokemonCard) {
-            console.log(`[SEARCH] Carte trouvée, mise en surbrillance`);
-            
-            // Animation de surbrillance
-            pokemonCard.style.animation = 'capturedPulse 1.5s ease';
-            setTimeout(() => {
-                pokemonCard.style.animation = '';
-            }, 1500);
-            
-            // Scroll vers la carte
-            pokemonCard.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center' 
-            });
-        } else {
-            console.log(`[SEARCH] ERREUR: Carte non trouvée`);
-        }
-    }, 300);
+            // Attendre que la carte soit bien présente dans le DOM puis la mettre en surbrillance
+        setTimeout(() => {
+            const pokemonCard = document.querySelector(`[data-pokemon-number="${pokemonNumber}"]`);
+            if (pokemonCard) {
+                console.log(`[SEARCH] Carte trouvée, mise en surbrillance`);
+                
+                // Animation de surbrillance améliorée
+                pokemonCard.classList.add('search-highlight');
+                setTimeout(() => {
+                    pokemonCard.classList.remove('search-highlight');
+                }, 2000);
+                
+                // Scroll vers la carte
+                pokemonCard.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            } else {
+                console.log(`[SEARCH] ERREUR: Carte non trouvée`);
+            }
+        }, 300);
 }
 
 // Afficher un message de bienvenue
