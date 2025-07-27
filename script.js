@@ -1577,6 +1577,8 @@ async function loadUserRole() {
 // Mettre à jour l'affichage du badge de rôle
 function updateRoleDisplay() {
     const userRoleBadge = document.getElementById('user-role-badge');
+    const settingsBtn = document.getElementById('settings-btn');
+    
     if (userRoleBadge) {
         const roleNames = {
             'member': 'Membre',
@@ -1586,6 +1588,15 @@ function updateRoleDisplay() {
         userRoleBadge.textContent = roleNames[userRole] || 'Membre';
         userRoleBadge.className = 'role-badge ' + userRole;
         userRoleBadge.style.display = 'inline-block';
+    }
+    
+    // Masquer le bouton des paramètres pour les non-admin
+    if (settingsBtn) {
+        if (userRole === 'admin') {
+            settingsBtn.style.display = 'flex';
+        } else {
+            settingsBtn.style.display = 'none';
+        }
     }
 }
 
