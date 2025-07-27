@@ -529,6 +529,156 @@ function setupEventListeners() {
     if (userAvatar) {
         userAvatar.addEventListener('click', showAvatarModal);
     }
+    
+    // Setup du swipe pour mobile
+    setupSwipeNavigation();
+}
+
+// ===== SWIPE NAVIGATION MOBILE =====
+
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+let isSwiping = false;
+
+function setupSwipeNavigation() {
+    const pokemonGrid = document.getElementById('pokemon-grid');
+    if (!pokemonGrid) return;
+    
+    // Événements touch pour mobile
+    pokemonGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
+    pokemonGrid.addEventListener('touchmove', handleTouchMove, { passive: false });
+    pokemonGrid.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    // Événements mouse pour desktop (optionnel)
+    pokemonGrid.addEventListener('mousedown', handleMouseStart);
+    pokemonGrid.addEventListener('mousemove', handleMouseMove);
+    pokemonGrid.addEventListener('mouseup', handleMouseEnd);
+    pokemonGrid.addEventListener('mouseleave', handleMouseEnd);
+}
+
+function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isSwiping = false;
+}
+
+function handleTouchMove(e) {
+    if (!touchStartX || !touchStartY) return;
+    
+    touchEndX = e.touches[0].clientX;
+    touchEndY = e.touches[0].clientY;
+    
+    const deltaX = Math.abs(touchEndX - touchStartX);
+    const deltaY = Math.abs(touchEndY - touchStartY);
+    
+    // Détecter si c'est un swipe horizontal
+    if (deltaX > deltaY && deltaX > 50) {
+        isSwiping = true;
+        e.preventDefault(); // Empêcher le scroll vertical
+    }
+}
+
+function handleTouchEnd(e) {
+    if (!isSwiping) return;
+    
+    const deltaX = touchEndX - touchStartX;
+    const minSwipeDistance = 100; // Distance minimale pour déclencher le swipe
+    
+    if (Math.abs(deltaX) > minSwipeDistance) {
+        if (deltaX > 0) {
+            // Swipe vers la droite -> page précédente
+            if (currentPage > 1) {
+                currentPage--;
+                displayCurrentPage();
+                updateStats();
+                showSwipeFeedback('prev');
+            }
+        } else {
+            // Swipe vers la gauche -> page suivante
+            if (currentPage < TOTAL_PAGES) {
+                currentPage++;
+                displayCurrentPage();
+                updateStats();
+                showSwipeFeedback('next');
+            }
+        }
+    }
+    
+    // Reset
+    touchStartX = 0;
+    touchStartY = 0;
+    touchEndX = 0;
+    touchEndY = 0;
+    isSwiping = false;
+}
+
+// Support mouse pour desktop (optionnel)
+function handleMouseStart(e) {
+    touchStartX = e.clientX;
+    touchStartY = e.clientY;
+    isSwiping = false;
+}
+
+function handleMouseMove(e) {
+    if (!touchStartX || !touchStartY) return;
+    
+    touchEndX = e.clientX;
+    touchEndY = e.clientY;
+    
+    const deltaX = Math.abs(touchEndX - touchStartX);
+    const deltaY = Math.abs(touchEndY - touchStartY);
+    
+    if (deltaX > deltaY && deltaX > 50) {
+        isSwiping = true;
+    }
+}
+
+function handleMouseEnd(e) {
+    if (!isSwiping) return;
+    
+    const deltaX = touchEndX - touchStartX;
+    const minSwipeDistance = 100;
+    
+    if (Math.abs(deltaX) > minSwipeDistance) {
+        if (deltaX > 0) {
+            if (currentPage > 1) {
+                currentPage--;
+                displayCurrentPage();
+                updateStats();
+                showSwipeFeedback('prev');
+            }
+        } else {
+            if (currentPage < TOTAL_PAGES) {
+                currentPage++;
+                displayCurrentPage();
+                updateStats();
+                showSwipeFeedback('next');
+            }
+        }
+    }
+    
+    // Reset
+    touchStartX = 0;
+    touchStartY = 0;
+    touchEndX = 0;
+    touchEndY = 0;
+    isSwiping = false;
+}
+
+// Feedback visuel pour le swipe
+function showSwipeFeedback(direction) {
+    const pokemonGrid = document.getElementById('pokemon-grid');
+    if (!pokemonGrid) return;
+    
+    // Ajouter une classe temporaire pour l'animation
+    pokemonGrid.classList.add(`swipe-${direction}`);
+    
+    // Retirer la classe après l'animation
+    setTimeout(() => {
+        pokemonGrid.classList.remove(`swipe-${direction}`);
+    }, 300);
 }
 
 // Afficher la page courante avec animations

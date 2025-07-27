@@ -2433,6 +2433,109 @@ body {
     animation: pageZoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ===== SWIPE ANIMATIONS ===== */
+.pokemon-grid {
+    /* Ajouter le support tactile */
+    touch-action: pan-y; /* Permettre le scroll vertical mais contrôler le horizontal */
+    user-select: none; /* Empêcher la sélection de texte pendant le swipe */
+}
+
+/* Animation de swipe vers la gauche (page suivante) */
+.pokemon-grid.swipe-next {
+    animation: swipeNext 0.3s ease-out;
+}
+
+/* Animation de swipe vers la droite (page précédente) */
+.pokemon-grid.swipe-prev {
+    animation: swipePrev 0.3s ease-out;
+}
+
+@keyframes swipeNext {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-20px);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes swipePrev {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(20px);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Améliorer l'expérience tactile sur mobile */
+@media (max-width: 768px) {
+    .pokemon-grid {
+        /* Optimiser pour le tactile */
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+    
+    .pokemon-card {
+        /* Améliorer la réactivité tactile */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Indicateur visuel pour le swipe */
+    .pokemon-grid::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        width: 4px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 10;
+    }
+    
+    .pokemon-grid::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        width: 4px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 10;
+    }
+    
+    /* Afficher les indicateurs au hover sur desktop */
+    @media (hover: hover) {
+        .pokemon-grid:hover::before,
+        .pokemon-grid:hover::after {
+            opacity: 1;
+        }
+    }
+}
+
 /* ===== SCROLLBAR STYLING ===== */
 
 ::-webkit-scrollbar {
