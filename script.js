@@ -1813,6 +1813,7 @@ async function showUsersManagement() {
                 username: userData.username || '',
                 email: userData.email || '',
                 role: userData.role || 'member',
+                avatar: userData.avatar || '👤',
                 capturedCount: userData.capturedPokemon ? userData.capturedPokemon.length : 0,
                 completion: ((userData.capturedPokemon ? userData.capturedPokemon.length : 0) / TOTAL_POKEMON * 100).toFixed(1),
                 lastActivity: userData.lastSaved ? new Date(userData.lastSaved.toDate()).toLocaleDateString('fr-FR') : 'Jamais'
@@ -1866,8 +1867,13 @@ function renderUsersTable(users) {
         html += `
         <div class="user-card" data-uid="${user.uid}">
             <div class="user-card-header">
-                <span class="user-card-username">${user.username || 'N/A'}</span>
-                <span class="user-card-badge ${user.role}" data-uid="${user.uid}" data-current-role="${user.role}" style="cursor: pointer;" title="Cliquer pour changer le rôle">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
+                <div class="user-card-avatar">
+                    <span class="user-card-avatar-icon">${user.avatar || '👤'}</span>
+                </div>
+                <div class="user-card-info">
+                    <span class="user-card-username">${user.username || 'N/A'}</span>
+                    <span class="user-card-badge ${user.role}" data-uid="${user.uid}" data-current-role="${user.role}" style="cursor: pointer;" title="Cliquer pour changer le rôle">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
+                </div>
             </div>
             <div class="user-card-email">${user.email || ''}</div>
             <div class="user-card-stats">
