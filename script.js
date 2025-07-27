@@ -7,6 +7,7 @@ let TOTAL_PAGES = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
 let currentPage = 1;
 let capturedPokemon = new Set();
 let pokemonList = [];
+let pokemonNamesData = []; // Stockage des noms français et anglais
 let currentFilter = 'all'; // 'all', 'captured', 'missing'
 let currentUser = null;
 
@@ -126,8 +127,8 @@ if (gridSizeBtn) {
     gridSizeBtn.addEventListener('click', cycleGridSize);
 }
 
-// Fonction pour récupérer tous les noms de Pokémon en français depuis PokéAPI
-async function fetchFrenchPokemonNames() {
+// Fonction pour récupérer tous les noms de Pokémon en français et anglais depuis PokéAPI
+async function fetchPokemonNames() {
     console.log('[PokéAPI] Début du chargement de la liste des espèces...');
     const speciesListResp = await fetch('https://pokeapi.co/api/v2/pokemon-species?limit=1025');
     const speciesList = await speciesListResp.json();
@@ -136,7 +137,7 @@ async function fetchFrenchPokemonNames() {
 
     // Pour aller plus vite, on limite à 50 requêtes en parallèle
     const chunkSize = 50;
-    let names = [];
+    let pokemonNames = [];
     for (let i = 0; i < urls.length; i += chunkSize) {
         const chunk = urls.slice(i, i + chunkSize);
         console.log(`[PokéAPI] Traitement du chunk ${i/chunkSize+1} (${i+1} à ${i+chunk.length})...`);
@@ -144,23 +145,32 @@ async function fetchFrenchPokemonNames() {
             try {
                 const resp = await fetch(url);
                 const data = await resp.json();
+                
+                // Récupérer les noms français et anglais
                 const frName = data.names.find(n => n.language.name === 'fr');
+                const enName = data.names.find(n => n.language.name === 'en');
+                
                 if (frName) {
-                    console.log(`[PokéAPI] #${data.id} : ${frName.name}`);
+                    console.log(`[PokéAPI] #${data.id} : ${frName.name} (${enName ? enName.name : data.name})`);
                 } else {
                     console.warn(`[PokéAPI] #${data.id} : nom FR non trouvé, fallback sur ${data.name}`);
                 }
-                return frName ? frName.name : data.name;
+                
+                return {
+                    number: data.id,
+                    french: frName ? frName.name : data.name,
+                    english: enName ? enName.name : data.name
+                };
             } catch (e) {
                 console.error(`[PokéAPI] Erreur sur ${url} :`, e);
                 return null;
             }
         }));
-        names = names.concat(chunkResults.filter(Boolean));
-        console.log(`[PokéAPI] ${names.length} noms collectés jusqu'ici.`);
+        pokemonNames = pokemonNames.concat(chunkResults.filter(Boolean));
+        console.log(`[PokéAPI] ${pokemonNames.length} noms collectés jusqu'ici.`);
     }
-    console.log(`[PokéAPI] Chargement terminé. Total : ${names.length} noms.`);
-    return names;
+    console.log(`[PokéAPI] Chargement terminé. Total : ${pokemonNames.length} noms.`);
+    return pokemonNames;
 }
 
 // Initialisation
@@ -169,20 +179,23 @@ async function init() {
         // Charger et afficher la version dynamiquement
         await loadAndDisplayVersion();
         
-        let pokemonListCache = localStorage.getItem('pokemonListFR');
+        let pokemonListCache = localStorage.getItem('pokemonListCache');
         if (pokemonListCache) {
-            pokemonList = JSON.parse(pokemonListCache);
-            console.log('[PokéAPI] Liste des Pokémon FR chargée depuis le cache localStorage');
+            const cachedData = JSON.parse(pokemonListCache);
+            pokemonList = cachedData.map(p => p.french); // Garder la compatibilité
+            pokemonNamesData = cachedData; // Stocker les données complètes
+            console.log('[PokéAPI] Liste des Pokémon chargée depuis le cache localStorage');
         } else {
-            pokemonGrid.innerHTML = '<p style="text-align: center; color: #667eea;">Chargement de la liste des Pokémon en français...<br>Ce chargement peut prendre 10 à 30 secondes la première fois.</p>';
+            pokemonGrid.innerHTML = '<p style="text-align: center; color: #667eea;">Chargement de la liste des Pokémon...<br>Ce chargement peut prendre 10 à 30 secondes la première fois.</p>';
             console.log('[PokéAPI] Aucun cache trouvé, chargement depuis PokéAPI...');
-            pokemonList = await fetchFrenchPokemonNames();
-            localStorage.setItem('pokemonListFR', JSON.stringify(pokemonList));
-            console.log('[PokéAPI] Liste des Pokémon FR chargée depuis PokéAPI et mise en cache');
+            pokemonNamesData = await fetchPokemonNames();
+            pokemonList = pokemonNamesData.map(p => p.french); // Garder la compatibilité
+            localStorage.setItem('pokemonListCache', JSON.stringify(pokemonNamesData));
+            console.log('[PokéAPI] Liste des Pokémon chargée depuis PokéAPI et mise en cache');
         }
         // Initialiser l'authentification Firebase
         initAuth();
-        console.log(`[PokéAPI] Application initialisée avec ${pokemonList.length} Pokémon (noms FR dynamiques)`);
+        console.log(`[PokéAPI] Application initialisée avec ${pokemonList.length} Pokémon (noms FR/EN dynamiques)`);
     } catch (error) {
         console.error('Erreur lors du chargement des Pokémon:', error);
         pokemonGrid.innerHTML = '<p style="text-align: center; color: red;">Erreur lors du chargement des données</p>';
@@ -1324,14 +1337,16 @@ function performSearch(query) {
     const searchTerm = query.toLowerCase();
     
     // Rechercher dans la liste des Pokémon
-    const results = pokemonList
-        .map((name, index) => ({
-            number: index + 1,
-            name: name,
-            isCaptured: capturedPokemon.has(index + 1)
+    const results = pokemonNamesData
+        .map((pokemon, index) => ({
+            number: pokemon.number,
+            name: pokemon.french,
+            englishName: pokemon.english,
+            isCaptured: capturedPokemon.has(pokemon.number)
         }))
         .filter(pokemon => 
             pokemon.name.toLowerCase().includes(searchTerm) ||
+            pokemon.englishName.toLowerCase().includes(searchTerm) ||
             pokemon.number.toString().includes(searchTerm)
         )
         .slice(0, 8); // Limiter à 8 résultats
@@ -1578,13 +1593,15 @@ function performAvatarSearch(query) {
     const searchTerm = query.toLowerCase();
     
     // Rechercher dans la liste des Pokémon
-    const results = pokemonList
-        .map((name, index) => ({
-            number: index + 1,
-            name: name
+    const results = pokemonNamesData
+        .map((pokemon, index) => ({
+            number: pokemon.number,
+            name: pokemon.french,
+            englishName: pokemon.english
         }))
         .filter(pokemon => 
             pokemon.name.toLowerCase().includes(searchTerm) ||
+            pokemon.englishName.toLowerCase().includes(searchTerm) ||
             pokemon.number.toString().includes(searchTerm)
         )
         .slice(0, 20); // Limiter à 20 résultats
