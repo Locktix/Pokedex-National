@@ -1213,11 +1213,21 @@ function selectSearchResult(pokemonNumber) {
 
 function showSearchResults() {
     searchResults.style.display = 'block';
+    // Add a class to the toolbar to indicate it's expanded
+    const toolbar = document.querySelector('.glass-toolbar');
+    if (toolbar) {
+        toolbar.classList.add('expanded');
+    }
 }
 
 function hideSearchResults() {
     searchResults.style.display = 'none';
     selectedResultIndex = -1;
+    // Remove the expanded class from the toolbar
+    const toolbar = document.querySelector('.glass-toolbar');
+    if (toolbar) {
+        toolbar.classList.remove('expanded');
+    }
 }
 
 function clearSearch() {
@@ -1284,6 +1294,8 @@ window.addEventListener('load', () => {
         showNotification('Bienvenue dans le Pokédex National ! 🎮', 'info');
     }, 1000);
 });
+
+
 
 // ===== SYSTÈME DE RÔLES =====
 
