@@ -15,6 +15,11 @@ let currentUser = null;
 let userRole = 'member'; // 'member', 'tester', 'admin'
 let allUsers = [];
 
+// Variables pour la gestion des avatars d'autres utilisateurs
+let isChangingOtherUserAvatar = false;
+let targetUserId = null;
+let targetUsername = null;
+
 // Ajout : mémoriser la page courante pour chaque filtre
 let pageByFilter = { all: 1, captured: 1 };
 
@@ -1509,16 +1514,42 @@ let avatarSearchResults = [];
 let avatarSearchTimeout = null;
 
 // Afficher le modal de sélection d'avatar
+// Afficher le modal de sélection d'avatar pour l'utilisateur courant
 function showAvatarModal() {
+    showUserAvatarModal(null, null);
+}
+
+// Afficher le modal de sélection d'avatar pour un utilisateur spécifique (admin)
+window.showUserAvatarModal = function(uid, username) {
     const modal = document.getElementById('avatar-modal');
     const avatarGrid = document.getElementById('avatar-grid');
     const saveBtn = document.getElementById('save-avatar');
     const cancelBtn = document.getElementById('cancel-avatar');
     const closeBtn = document.getElementById('close-avatar');
+    const modalTitle = document.querySelector('#avatar-modal .modal-title .modal-text');
     
     if (!modal || !avatarGrid) return;
     
-    selectedAvatar = currentAvatar;
+    // Définir si on change l'avatar d'un autre utilisateur
+    isChangingOtherUserAvatar = uid !== null;
+    targetUserId = uid;
+    targetUsername = username;
+    
+    // Mettre à jour le titre du modal
+    if (modalTitle) {
+        if (isChangingOtherUserAvatar) {
+            modalTitle.textContent = `Changer l'avatar de ${username}`;
+        } else {
+            modalTitle.textContent = 'Choisir un avatar';
+        }
+    }
+    
+    // Charger l'avatar actuel de l'utilisateur cible
+    if (isChangingOtherUserAvatar) {
+        loadTargetUserAvatar(uid);
+    } else {
+        selectedAvatar = currentAvatar;
+    }
     
     // Créer la barre de recherche et la grille de résultats
     avatarGrid.innerHTML = `
@@ -1620,7 +1651,7 @@ function displayAvatarResults(results) {
     }
     
     resultsGrid.innerHTML = results.map(pokemon => `
-        <div class="avatar-option ${pokemon.number === currentAvatar ? 'selected' : ''}" 
+        <div class="avatar-option ${pokemon.number === selectedAvatar ? 'selected' : ''}" 
              data-avatar="${pokemon.number}" 
              onclick="selectAvatar(${pokemon.number})">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.number}.png" 
@@ -1660,25 +1691,74 @@ function selectAvatar(num) {
     }
 }
 
+// Charger l'avatar actuel d'un utilisateur cible (admin)
+async function loadTargetUserAvatar(uid) {
+    try {
+        const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+        const userDoc = await getDoc(doc(window.db, 'users', uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            selectedAvatar = userData.avatar || null;
+        } else {
+            selectedAvatar = null;
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement de l\'avatar de l\'utilisateur:', error);
+        selectedAvatar = null;
+    }
+}
+
 // Sauvegarder l'avatar
 async function saveAvatar() {
-    if (selectedAvatar === currentAvatar) {
+    let targetUid = currentUser.uid;
+    let currentUserAvatar = currentAvatar;
+    
+    // Si on change l'avatar d'un autre utilisateur (admin)
+    if (isChangingOtherUserAvatar && targetUserId) {
+        targetUid = targetUserId;
+        // Charger l'avatar actuel de l'utilisateur cible pour la comparaison
+        try {
+            const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
+            const userDoc = await getDoc(doc(window.db, 'users', targetUid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                currentUserAvatar = userData.avatar || null;
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement de l\'avatar actuel:', error);
+        }
+    }
+    
+    if (selectedAvatar === currentUserAvatar) {
         closeAvatarModal();
         return;
     }
     
-    currentAvatar = selectedAvatar;
-    updateAvatarDisplay();
-    
     try {
         const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
-        await updateDoc(doc(window.db, 'users', currentUser.uid), {
-            avatar: currentAvatar,
+        await updateDoc(doc(window.db, 'users', targetUid), {
+            avatar: selectedAvatar,
             lastSaved: new Date()
         });
-        showNotification('Avatar mis à jour ! 🎨', 'success');
+        
+        // Mettre à jour l'affichage local si c'est l'utilisateur courant
+        if (!isChangingOtherUserAvatar) {
+            currentAvatar = selectedAvatar;
+            updateAvatarDisplay();
+        } else {
+            // Recharger la liste des utilisateurs pour mettre à jour l'affichage
+            await showUsersManagement();
+        }
+        
+        const successMessage = isChangingOtherUserAvatar 
+            ? `Avatar de ${targetUsername} mis à jour ! 🎨` 
+            : 'Avatar mis à jour ! 🎨';
+        showNotification(successMessage, 'success');
     } catch (error) {
-        showNotification('Erreur lors de la sauvegarde de l\'avatar', 'error');
+        const errorMessage = isChangingOtherUserAvatar 
+            ? 'Erreur lors de la sauvegarde de l\'avatar de l\'utilisateur' 
+            : 'Erreur lors de la sauvegarde de l\'avatar';
+        showNotification(errorMessage, 'error');
     }
     
     closeAvatarModal();
@@ -1690,6 +1770,11 @@ function closeAvatarModal() {
     if (modal) {
         modal.style.display = 'none';
     }
+    
+    // Réinitialiser les variables pour le changement d'avatar d'autres utilisateurs
+    isChangingOtherUserAvatar = false;
+    targetUserId = null;
+    targetUsername = null;
 }
 
 // Mettre à jour l'affichage de l'avatar
@@ -2013,8 +2098,8 @@ function renderUsersTable(users) {
             dateStr = `<span>${jour}/${mois}/${annee}</span>`;
         }
         let avatarHtml = user.avatar ?
-            `<img class="user-card-avatar-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${user.avatar}.png" alt="Avatar" style="width:32px;height:32px;object-fit:contain;" />`
-            : `<img class="user-card-avatar-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokéball" style="width:32px;height:32px;object-fit:contain;" />`;
+            `<img class="user-card-avatar-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${user.avatar}.png" alt="Avatar" style="width:32px;height:32px;object-fit:contain;cursor:pointer;" onclick="showUserAvatarModal('${user.uid}', '${user.username.replace(/'/g, "&#39;")}')" title="Cliquer pour changer l'avatar" />`
+            : `<img class="user-card-avatar-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokéball" style="width:32px;height:32px;object-fit:contain;cursor:pointer;" onclick="showUserAvatarModal('${user.uid}', '${user.username.replace(/'/g, "&#39;")}')" title="Cliquer pour changer l'avatar" />`;
         html += `
         <div class="user-card" data-uid="${user.uid}">
             <div class="user-card-header">
