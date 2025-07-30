@@ -550,6 +550,18 @@ function setupEventListeners() {
     
     // Setup du swipe pour mobile
     setupSwipeNavigation();
+    
+    // Event listeners pour les filtres de collection d'utilisateur
+    const collectionFilterNumber = document.getElementById('collection-filter-number');
+    const collectionFilterCapture = document.getElementById('collection-filter-capture');
+    
+    if (collectionFilterNumber) {
+        collectionFilterNumber.addEventListener('click', () => changeCollectionFilter('number'));
+    }
+    
+    if (collectionFilterCapture) {
+        collectionFilterCapture.addEventListener('click', () => changeCollectionFilter('capture'));
+    }
 }
 
 // ===== SWIPE NAVIGATION MOBILE =====
@@ -2128,6 +2140,11 @@ function renderUsersTable(users) {
     setupRoleBadgeClickHandlers();
 }
 
+// Variables globales pour la collection d'utilisateur
+let currentCollectionFilter = 'number'; // 'number' ou 'capture'
+let currentCollectionData = null;
+let currentCollectionUid = null;
+
 // Afficher la collection d'un utilisateur dans un modal (admin)
 window.showUserCollectionModal = async function(uid, username, capturedCount, completion) {
     const modal = document.getElementById('user-collection-modal');
@@ -2136,38 +2153,38 @@ window.showUserCollectionModal = async function(uid, username, capturedCount, co
     const nameSpan = document.getElementById('collection-username');
     const statsSpan = document.getElementById('collection-stats');
     if (!modal || !grid || !emptyMsg || !nameSpan || !statsSpan) return;
+    
+    // Réinitialiser le filtre par défaut
+    currentCollectionFilter = 'number';
+    currentCollectionUid = uid;
+    
     nameSpan.textContent = username || uid;
     statsSpan.innerHTML = `<span class='captured'>${capturedCount || 0} capturés</span><span class='completion'>${completion || '0'}% complétion</span>`;
     grid.innerHTML = '<p style="text-align:center;color:#667eea;">Chargement de la collection...</p>';
     emptyMsg.style.display = 'none';
     modal.style.display = 'flex';
+    
+    // Mettre à jour l'état des boutons de filtre
+    updateCollectionFilterButtons();
+    
     try {
         const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');
         const userDoc = await getDoc(doc(window.db, 'users', uid));
         if (userDoc.exists()) {
             const userData = userDoc.data();
             const captured = userData.capturedPokemon || [];
-            captured.sort((a, b) => a - b);
+            
+            // Stocker les données pour les filtres
+            currentCollectionData = {
+                captured: captured,
+                captureDates: userData.captureDates || {}
+            };
+            
             if (captured.length === 0) {
                 grid.innerHTML = '';
                 emptyMsg.style.display = 'block';
             } else {
-                grid.innerHTML = '';
-                captured.forEach(num => {
-                    const poke = window.pokemonList ? window.pokemonList[num-1] : {name: `#${num}`};
-                    const card = document.createElement('div');
-                    card.className = 'pokemon-card captured';
-                    card.dataset.pokemonNumber = num;
-                    card.innerHTML = `
-                        <div class="pokemon-number">#${num.toString().padStart(3, '0')}</div>
-                        <div class="pokemon-name">${poke ? poke.name : ''}</div>
-                    `;
-                    if (typeof loadPokemonImage === 'function') {
-                        loadPokemonImage(card, num);
-                    }
-                    grid.appendChild(card);
-                });
-                emptyMsg.style.display = 'none';
+                displayCollectionWithFilter();
             }
         } else {
             grid.innerHTML = '';
@@ -2177,6 +2194,94 @@ window.showUserCollectionModal = async function(uid, username, capturedCount, co
         grid.innerHTML = '<p style="color:red;text-align:center;">Erreur lors du chargement</p>';
         emptyMsg.style.display = 'none';
     }
+};
+
+// Mettre à jour l'état des boutons de filtre
+function updateCollectionFilterButtons() {
+    const numberBtn = document.getElementById('collection-filter-number');
+    const captureBtn = document.getElementById('collection-filter-capture');
+    
+    if (numberBtn && captureBtn) {
+        numberBtn.classList.toggle('active', currentCollectionFilter === 'number');
+        captureBtn.classList.toggle('active', currentCollectionFilter === 'capture');
+    }
+}
+
+// Afficher la collection avec le filtre actuel
+function displayCollectionWithFilter() {
+    const grid = document.getElementById('user-collection-grid');
+    const emptyMsg = document.getElementById('user-collection-empty');
+    
+    if (!currentCollectionData || !grid || !emptyMsg) return;
+    
+    const { captured, captureDates } = currentCollectionData;
+    
+    if (captured.length === 0) {
+        grid.innerHTML = '';
+        emptyMsg.style.display = 'block';
+        return;
+    }
+    
+    // Trier selon le filtre actuel
+    let sortedPokemon = [...captured];
+    
+    if (currentCollectionFilter === 'number') {
+        // Trier par numéro de Pokémon (ordre par défaut)
+        sortedPokemon.sort((a, b) => a - b);
+    } else if (currentCollectionFilter === 'capture') {
+        // Trier par ordre de capture (plus ancien au plus récent)
+        sortedPokemon.sort((a, b) => {
+            const dateA = captureDates[a] || new Date(0);
+            const dateB = captureDates[b] || new Date(0);
+            return new Date(dateA) - new Date(dateB);
+        });
+    }
+    
+    // Afficher les Pokémon
+    grid.innerHTML = '';
+    sortedPokemon.forEach(num => {
+        // Récupérer le nom du Pokémon depuis la liste
+        let pokemonName = `#${num}`;
+        if (pokemonList && pokemonList[num-1]) {
+            pokemonName = pokemonList[num-1] || `#${num}`;
+        }
+        
+        const card = document.createElement('div');
+        card.className = 'pokemon-card captured';
+        card.dataset.pokemonNumber = num;
+        
+        // Ajouter la date de capture si disponible
+        let captureInfo = '';
+        if (currentCollectionFilter === 'capture' && captureDates[num]) {
+            const captureDate = new Date(captureDates[num]);
+            const day = captureDate.getDate().toString().padStart(2, '0');
+            const month = (captureDate.getMonth() + 1).toString().padStart(2, '0');
+            const year = captureDate.getFullYear();
+            captureInfo = `<div class="pokemon-capture-date">${day}/${month}/${year}</div>`;
+        }
+        
+        card.innerHTML = `
+            <div class="pokemon-number">#${num.toString().padStart(3, '0')}</div>
+            <div class="pokemon-name">${pokemonName}</div>
+            ${captureInfo}
+        `;
+        
+        if (typeof loadPokemonImage === 'function') {
+            loadPokemonImage(card, num);
+        }
+        grid.appendChild(card);
+    });
+    
+    emptyMsg.style.display = 'none';
+}
+
+// Gérer le changement de filtre de collection
+window.changeCollectionFilter = function(filter) {
+    if (filter === currentCollectionFilter) return;
+    
+    currentCollectionFilter = filter;
+    updateCollectionFilterButtons();
+    displayCollectionWithFilter();
 };
 
 // Fermer le modal de collection
