@@ -2203,6 +2203,25 @@ body {
         gap: var(--spacing-md);
     }
     
+    /* Responsive pour la grille de collection dans l'admin panel */
+    .user-collection-modal .pokemon-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+    }
+    
+    .user-collection-modal .pokemon-card {
+        min-height: 80px;
+    }
+    
+    .user-collection-modal .pokemon-number {
+        font-size: 0.9rem;
+    }
+    
+    .user-collection-modal .pokemon-name {
+        font-size: 0.7rem;
+    }
+    
     .pagination-controls {
         flex-wrap: wrap;
         gap: var(--spacing-sm);
@@ -2346,6 +2365,25 @@ body {
     
     .pokemon-grid {
         gap: var(--spacing-sm);
+    }
+    
+    /* Responsive pour la grille de collection dans l'admin panel */
+    .user-collection-modal .pokemon-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-xs);
+        padding: var(--spacing-sm);
+    }
+    
+    .user-collection-modal .pokemon-card {
+        min-height: 60px;
+    }
+    
+    .user-collection-modal .pokemon-number {
+        font-size: 0.8rem;
+    }
+    
+    .user-collection-modal .pokemon-name {
+        font-size: 0.6rem;
     }
     
     .pokemon-card {
