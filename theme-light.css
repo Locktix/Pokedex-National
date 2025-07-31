@@ -2222,6 +2222,61 @@ body {
         font-size: 0.7rem;
     }
     
+    /* Responsive pour le header du modal de collection */
+    .user-collection-modal .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        position: relative;
+    }
+    
+    .user-collection-modal .modal-title {
+        flex: 1;
+        margin: 0;
+    }
+    
+    .user-collection-modal #collection-stats {
+        flex-shrink: 0;
+        margin: 0;
+    }
+    
+    .user-collection-modal #close-collection {
+        position: absolute;
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+    }
+    
+    /* Responsive pour les stats de collection */
+    .collection-stats-badges {
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+        margin: 0;
+    }
+    
+    .collection-stats-badges span {
+        font-size: 0.9rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    /* Responsive pour les filtres de collection */
+    .collection-filters {
+        margin-bottom: var(--spacing-md);
+        padding: 0 var(--spacing-md);
+    }
+    
+    .collection-filters .filter-group {
+        display: flex;
+        gap: var(--spacing-sm);
+        justify-content: center;
+    }
+    
+    .collection-filters .filter-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8rem;
+    }
+    
     .pagination-controls {
         flex-wrap: wrap;
         gap: var(--spacing-sm);
@@ -2384,6 +2439,62 @@ body {
     
     .user-collection-modal .pokemon-name {
         font-size: 0.6rem;
+    }
+    
+    /* Responsive pour le header du modal de collection */
+    .user-collection-modal .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm);
+        position: relative;
+    }
+    
+    .user-collection-modal .modal-title {
+        flex: 1;
+        margin: 0;
+        font-size: 1rem;
+    }
+    
+    .user-collection-modal #collection-stats {
+        flex-shrink: 0;
+        margin: 0;
+    }
+    
+    .user-collection-modal #close-collection {
+        position: absolute;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+    }
+    
+    /* Responsive pour les stats de collection */
+    .collection-stats-badges {
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+        margin: 0;
+    }
+    
+    .collection-stats-badges span {
+        font-size: 0.8rem;
+        padding: var(--spacing-xs);
+    }
+    
+    /* Responsive pour les filtres de collection */
+    .collection-filters {
+        margin-bottom: var(--spacing-sm);
+        padding: 0 var(--spacing-sm);
+    }
+    
+    .collection-filters .filter-group {
+        display: flex;
+        gap: var(--spacing-xs);
+        justify-content: center;
+    }
+    
+    .collection-filters .filter-btn {
+        padding: var(--spacing-xs);
+        font-size: 0.7rem;
     }
     
     .pokemon-card {

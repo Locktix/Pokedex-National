@@ -1354,7 +1354,7 @@ function performSearch(query) {
     const searchTerm = query.toLowerCase();
     
     // Rechercher dans la liste des Pokémon
-    const results = pokemonNamesData
+    let results = pokemonNamesData
         .map((pokemon, index) => ({
             number: pokemon.number,
             name: pokemon.french,
@@ -1365,8 +1365,16 @@ function performSearch(query) {
             pokemon.name.toLowerCase().includes(searchTerm) ||
             pokemon.englishName.toLowerCase().includes(searchTerm) ||
             pokemon.number.toString().includes(searchTerm)
-        )
-        .slice(0, 8); // Limiter à 8 résultats
+        );
+    
+    // Appliquer le filtre actif sur les résultats de recherche
+    if (currentFilter === 'captured') {
+        results = results.filter(pokemon => pokemon.isCaptured);
+    }
+    // Si le filtre est 'all', on affiche tous les résultats (capturés et non capturés)
+    
+    // Limiter à 8 résultats
+    results = results.slice(0, 8);
     
     currentSearchResults = results;
     displaySearchResults(results);
