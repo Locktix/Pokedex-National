@@ -10,6 +10,7 @@ let pokemonList = [];
 let pokemonNamesData = []; // Stockage des noms français et anglais
 let currentFilter = 'all'; // 'all', 'captured', 'missing'
 let currentUser = null;
+let randomUncapturedOnly = false; // Nouveau paramètre pour le random Pokémon
 
 // Variables pour le système de rôles
 let userRole = 'member'; // 'member', 'tester', 'admin'
@@ -238,6 +239,7 @@ function initAuth() {
             
             setupEventListeners();
             setupSettingsModal(); // Configurer le modal des paramètres
+            loadRandomPokemonSetting(); // Charger les paramètres utilisateur
             await displayCurrentPage();
             updateStats();
             await setFilter(currentFilter);
@@ -1862,13 +1864,9 @@ function updateRoleDisplay() {
         userRoleBadge.style.display = 'inline-block';
     }
     
-    // Masquer le bouton des paramètres pour les non-admin
+    // Afficher le bouton des paramètres pour tous les utilisateurs
     if (settingsBtn) {
-        if (userRole === 'admin') {
-            settingsBtn.style.display = 'flex';
-        } else {
-            settingsBtn.style.display = 'none';
-        }
+        settingsBtn.style.display = 'flex';
     }
 }
 
@@ -1918,8 +1916,38 @@ function setupSettingsModal() {
     setupAdminEventListeners();
 }
 
-function loadSettings() {
+// Charger le paramètre random Pokémon
+function loadRandomPokemonSetting() {
+    const toggle = document.getElementById('random-uncaptured-toggle');
+    if (toggle) {
+        // Charger depuis le localStorage
+        const saved = localStorage.getItem('randomUncapturedOnly');
+        randomUncapturedOnly = saved === 'true';
+        toggle.checked = randomUncapturedOnly;
+    }
+}
 
+// Configurer les event listeners des paramètres
+function setupSettingsEventListeners() {
+    const toggle = document.getElementById('random-uncaptured-toggle');
+    if (toggle) {
+        toggle.addEventListener('change', (e) => {
+            randomUncapturedOnly = e.target.checked;
+            localStorage.setItem('randomUncapturedOnly', randomUncapturedOnly.toString());
+            showNotification(
+                randomUncapturedOnly 
+                    ? '🎲 Random Pokémon : uniquement non capturés' 
+                    : '🎲 Random Pokémon : tous les Pokémon',
+                'info'
+            );
+        });
+    }
+}
+
+function loadSettings() {
+    // Charger les paramètres utilisateur
+    loadRandomPokemonSetting();
+    setupSettingsEventListeners();
 }
 
 // ===== FONCTIONNALITÉS ADMIN =====
@@ -2530,11 +2558,37 @@ async function handleRandomPokemon() {
     spinner.style.display = 'flex';
     result.style.display = 'none';
     
-    // Générer un numéro de Pokémon aléatoire
-    const randomPokemonNumber = Math.floor(Math.random() * TOTAL_POKEMON) + 1;
-    const pokemonName = pokemonList[randomPokemonNumber - 1];
+    // Générer un numéro de Pokémon aléatoire selon le paramètre
+    let randomPokemonNumber;
+    let pokemonName;
     
-    console.log(`[RANDOM] Pokémon aléatoire sélectionné : #${randomPokemonNumber} - ${pokemonName}`);
+    if (randomUncapturedOnly) {
+        // Générer uniquement parmi les Pokémon non capturés
+        const uncapturedPokemon = [];
+        for (let i = 1; i <= TOTAL_POKEMON; i++) {
+            if (!capturedPokemon.has(i)) {
+                uncapturedPokemon.push(i);
+            }
+        }
+        
+        if (uncapturedPokemon.length === 0) {
+            showNotification('🎉 Félicitations ! Vous avez capturé tous les Pokémon !', 'success');
+            modal.style.display = 'none';
+            return;
+        }
+        
+        const randomIndex = Math.floor(Math.random() * uncapturedPokemon.length);
+        randomPokemonNumber = uncapturedPokemon[randomIndex];
+        pokemonName = pokemonList[randomPokemonNumber - 1];
+        
+        console.log(`[RANDOM] Pokémon aléatoire non capturé sélectionné : #${randomPokemonNumber} - ${pokemonName}`);
+    } else {
+        // Générer parmi tous les Pokémon
+        randomPokemonNumber = Math.floor(Math.random() * TOTAL_POKEMON) + 1;
+        pokemonName = pokemonList[randomPokemonNumber - 1];
+        
+        console.log(`[RANDOM] Pokémon aléatoire sélectionné : #${randomPokemonNumber} - ${pokemonName}`);
+    }
     
     // Attendre 2 secondes pour l'animation du spinner
     setTimeout(async () => {

@@ -215,6 +215,27 @@
                 </button>
             </div>
             <div class="modal-body">
+                <!-- Section Paramètres Utilisateur (visible pour tous) -->
+                <div id="user-settings" class="settings-section">
+                    <h4 class="section-title">
+                        <span class="section-icon">⚙️</span>
+                        <span class="section-text">Paramètres Généraux</span>
+                    </h4>
+                    
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span class="setting-icon">🎲</span>
+                            <span class="setting-text">Retirer les Pokémon déjà capturés</span>
+                        </label>
+                        <div class="toggle-container">
+                            <input type="checkbox" id="random-uncaptured-toggle" class="toggle-input">
+                            <label for="random-uncaptured-toggle" class="toggle-label">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Section Admin (visible uniquement pour les admins) -->
                 <div id="admin-settings" class="settings-section" style="display: none;">
                     <h4 class="section-title">
