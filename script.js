@@ -544,6 +544,24 @@ function setupEventListeners() {
         randomPokemonBtn.addEventListener('click', handleRandomPokemon);
     }
     
+    // Event listener pour l'ajout rapide (maintenant dans les paramètres)
+    const settingsQuickAddBtn = document.getElementById('settings-quick-add-btn');
+    if (settingsQuickAddBtn) {
+        settingsQuickAddBtn.addEventListener('click', handleQuickAdd);
+    }
+    
+    // Event listener pour l'export de la liste des Pokémon
+    const exportPokemonListBtn = document.getElementById('export-pokemon-list-btn');
+    if (exportPokemonListBtn) {
+        exportPokemonListBtn.addEventListener('click', handleExportPokemonList);
+    }
+    
+    // Event listener pour copier la liste des Pokémon
+    const copyPokemonListBtn = document.getElementById('copy-pokemon-list-btn');
+    if (copyPokemonListBtn) {
+        copyPokemonListBtn.addEventListener('click', handleCopyPokemonList);
+    }
+    
     // Event listener pour l'avatar
     const userAvatar = document.getElementById('user-avatar');
     if (userAvatar) {
@@ -2620,6 +2638,310 @@ async function handleRandomPokemon() {
     }, 2000);
 }
 
+// Fonction pour l'ajout rapide de Pokémon
+async function handleQuickAdd() {
+    // Afficher le modal d'ajout rapide
+    showQuickAddModal();
+}
+
+// Fonction pour afficher le modal d'ajout rapide
+function showQuickAddModal() {
+    const modal = document.getElementById('quick-add-modal');
+    const textarea = document.getElementById('quick-add-input');
+    const preview = document.getElementById('quick-add-preview');
+    
+    // Réinitialiser le modal
+    textarea.value = '';
+    preview.style.display = 'none';
+    
+    // Afficher le modal
+    modal.style.display = 'flex';
+    
+    // Focus sur le textarea
+    setTimeout(() => {
+        textarea.focus();
+    }, 100);
+    
+    // Configurer les événements
+    setupQuickAddEventListeners();
+}
+
+// Fonction pour configurer les événements du modal d'ajout rapide
+function setupQuickAddEventListeners() {
+    const modal = document.getElementById('quick-add-modal');
+    const textarea = document.getElementById('quick-add-input');
+    const preview = document.getElementById('quick-add-preview');
+    const confirmBtn = document.getElementById('confirm-quick-add');
+    const cancelBtn = document.getElementById('cancel-quick-add');
+    const closeBtn = document.getElementById('close-quick-add');
+    
+    // Événement de saisie pour la prévisualisation
+    textarea.addEventListener('input', () => {
+        updateQuickAddPreview();
+    });
+    
+    // Bouton confirmer
+    confirmBtn.onclick = async () => {
+        await processQuickAdd();
+    };
+    
+    // Bouton annuler
+    cancelBtn.onclick = () => {
+        closeQuickAddModal();
+    };
+    
+    // Bouton fermer
+    closeBtn.onclick = () => {
+        closeQuickAddModal();
+    };
+    
+    // Fermer avec Escape
+    document.addEventListener('keydown', function handleEscape(e) {
+        if (e.key === 'Escape') {
+            closeQuickAddModal();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    });
+}
+
+// Fonction pour mettre à jour la prévisualisation
+function updateQuickAddPreview() {
+    const textarea = document.getElementById('quick-add-input');
+    const preview = document.getElementById('quick-add-preview');
+    const previewNumbers = document.getElementById('preview-numbers');
+    const previewStats = document.getElementById('preview-stats');
+    
+    const userInput = textarea.value.trim();
+    
+    if (!userInput) {
+        preview.style.display = 'none';
+        return;
+    }
+    
+    // Parser l'entrée utilisateur
+    let quickAddNumbers = [];
+    try {
+        quickAddNumbers = userInput
+            .split(',')
+            .map(num => num.trim())
+            .filter(num => num !== '')
+            .map(num => parseInt(num))
+            .filter(num => !isNaN(num) && num >= 1 && num <= TOTAL_POKEMON);
+    } catch (error) {
+        preview.style.display = 'none';
+        return;
+    }
+    
+    if (quickAddNumbers.length === 0) {
+        preview.style.display = 'none';
+        return;
+    }
+    
+    // Afficher la prévisualisation
+    preview.style.display = 'block';
+    
+    // Afficher les cartes Pokémon
+    previewNumbers.innerHTML = '';
+    quickAddNumbers.forEach(num => {
+        const isAlreadyCaptured = capturedPokemon.has(num);
+        const pokemonName = pokemonNamesData[num - 1]?.french || `Pokémon #${num}`;
+        
+        // Créer une carte Pokémon miniature
+        const card = document.createElement('div');
+        card.className = `preview-pokemon-card ${isAlreadyCaptured ? 'already-captured' : ''}`;
+        card.dataset.pokemonNumber = num;
+        
+        card.innerHTML = `
+            <div class="preview-pokemon-number">#${num.toString().padStart(3, '0')}</div>
+            <div class="preview-pokemon-name">${pokemonName}</div>
+        `;
+        
+        // Charger l'image de fond pour ce Pokémon
+        loadPreviewPokemonImage(card, num);
+        
+        previewNumbers.appendChild(card);
+    });
+    
+    // Afficher les statistiques
+    const alreadyCaptured = quickAddNumbers.filter(num => capturedPokemon.has(num));
+    const newToAdd = quickAddNumbers.filter(num => !capturedPokemon.has(num));
+    
+    previewStats.innerHTML = `
+        <div class="preview-stat">
+            <span>Total : <span class="stat-value">${quickAddNumbers.length}</span></span>
+        </div>
+        <div class="preview-stat">
+            <span>Nouveaux : <span class="stat-value">${newToAdd.length}</span></span>
+        </div>
+        <div class="preview-stat">
+            <span>Déjà capturés : <span class="stat-value">${alreadyCaptured.length}</span></span>
+        </div>
+    `;
+}
+
+// Fonction pour charger l'image d'un Pokémon dans la prévisualisation
+async function loadPreviewPokemonImage(card, pokemonNumber) {
+    try {
+        // URL de l'image officielle de Pokémon
+        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonNumber}.png`;
+        
+        // Créer un élément image pour précharger
+        const img = new Image();
+        
+        img.onload = () => {
+            // Une fois l'image chargée, l'ajouter comme fond
+            card.style.backgroundImage = `url(${imageUrl})`;
+            card.style.backgroundSize = 'cover';
+            card.style.backgroundPosition = 'center';
+            card.style.backgroundRepeat = 'no-repeat';
+            
+            // Ajouter un overlay semi-transparent pour améliorer la lisibilité du texte
+            card.style.position = 'relative';
+            
+            // Créer l'overlay
+            let overlay = card.querySelector('.preview-card-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'preview-card-overlay';
+                card.appendChild(overlay);
+            }
+            
+            // Mettre à jour l'overlay avec la bonne couleur selon l'état de capture
+            const isCaptured = capturedPokemon.has(pokemonNumber);
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: ${isCaptured 
+                    ? 'linear-gradient(135deg, rgba(78, 205, 196, 0.4) 0%, rgba(68, 160, 141, 0.2) 50%, rgba(78, 205, 196, 0.5) 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.1) 100%)'
+                };
+                pointer-events: none;
+                z-index: 1;
+            `;
+            
+            // S'assurer que le texte reste au-dessus de l'overlay
+            const numberElement = card.querySelector('.preview-pokemon-number');
+            const nameElement = card.querySelector('.preview-pokemon-name');
+            if (numberElement) numberElement.style.zIndex = '2';
+            if (nameElement) nameElement.style.zIndex = '2';
+        };
+        
+        img.onerror = () => {
+            // En cas d'erreur, utiliser une image par défaut ou un motif
+            console.warn(`Impossible de charger l'image pour le Pokémon #${pokemonNumber} dans la prévisualisation`);
+            card.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            
+            // Créer quand même l'overlay même en cas d'erreur
+            card.style.position = 'relative';
+            let overlay = card.querySelector('.preview-card-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'preview-card-overlay';
+                const isCaptured = capturedPokemon.has(pokemonNumber);
+                overlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: ${isCaptured 
+                        ? 'linear-gradient(135deg, rgba(78, 205, 196, 0.4) 0%, rgba(68, 160, 141, 0.2) 50%, rgba(78, 205, 196, 0.5) 100%)'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.1) 100%)'
+                    };
+                    pointer-events: none;
+                    z-index: 1;
+                `;
+                card.appendChild(overlay);
+            }
+        };
+        
+        // Démarrer le chargement
+        img.src = imageUrl;
+        
+    } catch (error) {
+        console.error(`Erreur lors du chargement de l'image pour le Pokémon #${pokemonNumber} dans la prévisualisation:`, error);
+    }
+}
+
+// Fonction pour traiter l'ajout rapide
+async function processQuickAdd() {
+    const textarea = document.getElementById('quick-add-input');
+    const userInput = textarea.value.trim();
+    
+    if (!userInput) {
+        showNotification('Aucun numéro de Pokémon saisi.', 'info');
+        return;
+    }
+    
+    // Parser l'entrée utilisateur
+    let quickAddNumbers = [];
+    try {
+        quickAddNumbers = userInput
+            .split(',')
+            .map(num => num.trim())
+            .filter(num => num !== '')
+            .map(num => parseInt(num))
+            .filter(num => !isNaN(num) && num >= 1 && num <= TOTAL_POKEMON);
+    } catch (error) {
+        showNotification('Format invalide. Veuillez entrer des numéros séparés par des virgules.', 'error');
+        return;
+    }
+    
+    if (quickAddNumbers.length === 0) {
+        showNotification('Aucun numéro de Pokémon valide trouvé.', 'error');
+        return;
+    }
+    
+    // Compter combien de Pokémon sont déjà capturés
+    const alreadyCaptured = quickAddNumbers.filter(num => capturedPokemon.has(num));
+    const newToAdd = quickAddNumbers.filter(num => !capturedPokemon.has(num));
+    
+    if (newToAdd.length === 0) {
+        showNotification('Tous ces Pokémon sont déjà capturés !', 'info');
+        closeQuickAddModal();
+        return;
+    }
+    
+    // Ajouter les Pokémon non capturés
+    let addedCount = 0;
+    for (const pokemonNumber of newToAdd) {
+        if (!capturedPokemon.has(pokemonNumber)) {
+            capturedPokemon.add(pokemonNumber);
+            addedCount++;
+        }
+    }
+    
+    // Mettre à jour l'affichage
+    updateStats();
+    
+    // Mettre à jour les cartes des Pokémon ajoutés
+    newToAdd.forEach(num => {
+        updatePokemonCard(num);
+    });
+    
+    // Sauvegarder les données
+    try {
+        await saveUserDataImmediate();
+        showNotification(`⚡ Ajout rapide terminé ! ${addedCount} nouveaux Pokémon capturés.`, 'success');
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde après ajout rapide:', error);
+        saveUserData();
+        showNotification(`⚡ Ajout rapide terminé ! ${addedCount} nouveaux Pokémon capturés.`, 'success');
+    }
+    
+    // Fermer le modal
+    closeQuickAddModal();
+}
+
+// Fonction pour fermer le modal d'ajout rapide
+function closeQuickAddModal() {
+    const modal = document.getElementById('quick-add-modal');
+    modal.style.display = 'none';
+}
+
 // Configurer les actions du Pokémon aléatoire
 function setupRandomPokemonActions(pokemonNumber) {
     const captureBtn = document.getElementById('capture-random-pokemon');
@@ -2674,3 +2996,110 @@ function setupRandomPokemonActions(pokemonNumber) {
 }
 
 // ===== SYSTÈME DE RÔLES ===== 
+
+// ===== FONCTIONS D'EXPORT =====
+
+// Fonction pour gérer l'export de la liste des Pokémon
+function handleExportPokemonList() {
+    // Afficher le modal d'export
+    showExportPokemonModal();
+}
+
+// Fonction pour afficher le modal d'export
+function showExportPokemonModal() {
+    const modal = document.getElementById('export-pokemon-modal');
+    const exportTextarea = document.getElementById('export-pokemon-list-text');
+    
+    if (!modal || !exportTextarea) return;
+    
+    // Convertir le Set en Array et trier par numéro
+    const capturedArray = Array.from(capturedPokemon).sort((a, b) => a - b);
+    
+    // Créer la liste formatée
+    const pokemonList = capturedArray.join(', ');
+    
+    // Afficher dans le textarea
+    exportTextarea.value = pokemonList;
+    
+    // Afficher le modal
+    modal.style.display = 'flex';
+    
+    // Configurer les événements
+    setupExportPokemonEventListeners();
+    
+    showNotification('📋 Liste des Pokémon exportée !', 'success');
+}
+
+// Fonction pour configurer les événements du modal d'export
+function setupExportPokemonEventListeners() {
+    const modal = document.getElementById('export-pokemon-modal');
+    const copyBtn = document.getElementById('copy-pokemon-list-btn');
+    const closeBtn = document.getElementById('close-export-pokemon');
+    const closeBtnSecondary = document.getElementById('close-export-pokemon-btn');
+    
+    // Bouton copier
+    if (copyBtn) {
+        copyBtn.onclick = async () => {
+            await handleCopyPokemonList();
+        };
+    }
+    
+    // Boutons fermer
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            closeExportPokemonModal();
+        };
+    }
+    
+    if (closeBtnSecondary) {
+        closeBtnSecondary.onclick = () => {
+            closeExportPokemonModal();
+        };
+    }
+    
+    // Fermer en cliquant en dehors
+    if (modal) {
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                closeExportPokemonModal();
+            }
+        };
+    }
+    
+    // Fermer avec Escape
+    document.addEventListener('keydown', function handleEscape(e) {
+        if (e.key === 'Escape') {
+            closeExportPokemonModal();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    });
+}
+
+// Fonction pour fermer le modal d'export
+function closeExportPokemonModal() {
+    const modal = document.getElementById('export-pokemon-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Fonction pour copier la liste des Pokémon
+async function handleCopyPokemonList() {
+    const exportTextarea = document.getElementById('export-pokemon-list-text');
+    
+    if (!exportTextarea || !exportTextarea.value) {
+        showNotification('Aucune liste à copier', 'error');
+        return;
+    }
+    
+    try {
+        await navigator.clipboard.writeText(exportTextarea.value);
+        showNotification('📋 Liste copiée dans le presse-papiers !', 'success');
+    } catch (error) {
+        // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+        exportTextarea.select();
+        exportTextarea.setSelectionRange(0, 99999); // Pour mobile
+        document.execCommand('copy');
+        showNotification('📋 Liste copiée dans le presse-papiers !', 'success');
+    }
+}
