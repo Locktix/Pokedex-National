@@ -2666,10 +2666,16 @@ function setupQuickAddEventListeners() {
     const confirmBtn = document.getElementById('confirm-quick-add');
     const cancelBtn = document.getElementById('cancel-quick-add');
     const closeBtn = document.getElementById('close-quick-add');
+    const sortBtn = document.getElementById('sort-preview-btn');
+    const clearBtn = document.getElementById('clear-preview-btn');
     
-    // Événement de saisie pour la prévisualisation
+    // Événement de saisie pour la prévisualisation avec debounce
+    let debounceTimer;
     textarea.addEventListener('input', () => {
-        updateQuickAddPreview();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            updateQuickAddPreview();
+        }, 300);
     });
     
     // Bouton confirmer
@@ -2687,11 +2693,31 @@ function setupQuickAddEventListeners() {
         closeQuickAddModal();
     };
     
+    // Bouton trier
+    sortBtn.onclick = () => {
+        sortPreviewNumbers();
+    };
+    
+    // Bouton effacer
+    clearBtn.onclick = () => {
+        textarea.value = '';
+        updateQuickAddPreview();
+        textarea.focus();
+    };
+    
     // Fermer avec Escape
     document.addEventListener('keydown', function handleEscape(e) {
         if (e.key === 'Escape') {
             closeQuickAddModal();
             document.removeEventListener('keydown', handleEscape);
+        }
+    });
+    
+    // Validation en temps réel avec suggestions
+    textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            e.preventDefault();
+            confirmBtn.click();
         }
     });
 }
@@ -2702,6 +2728,7 @@ function updateQuickAddPreview() {
     const preview = document.getElementById('quick-add-preview');
     const previewNumbers = document.getElementById('preview-numbers');
     const previewStats = document.getElementById('preview-stats');
+    const previewValidation = document.getElementById('preview-validation');
     
     const userInput = textarea.value.trim();
     
@@ -2710,21 +2737,36 @@ function updateQuickAddPreview() {
         return;
     }
     
-    // Parser l'entrée utilisateur
+    // Parser l'entrée utilisateur avec validation améliorée
     let quickAddNumbers = [];
+    let invalidNumbers = [];
+    let duplicateNumbers = [];
+    
     try {
-        quickAddNumbers = userInput
-            .split(',')
+        const inputNumbers = userInput
+            .split(/[,;\s]+/)
             .map(num => num.trim())
-            .filter(num => num !== '')
-            .map(num => parseInt(num))
-            .filter(num => !isNaN(num) && num >= 1 && num <= TOTAL_POKEMON);
+            .filter(num => num !== '');
+        
+        const seenNumbers = new Set();
+        
+        inputNumbers.forEach(numStr => {
+            const num = parseInt(numStr);
+            if (isNaN(num) || num < 1 || num > TOTAL_POKEMON) {
+                invalidNumbers.push(numStr);
+            } else if (seenNumbers.has(num)) {
+                duplicateNumbers.push(num);
+            } else {
+                seenNumbers.add(num);
+                quickAddNumbers.push(num);
+            }
+        });
     } catch (error) {
         preview.style.display = 'none';
         return;
     }
     
-    if (quickAddNumbers.length === 0) {
+    if (quickAddNumbers.length === 0 && invalidNumbers.length === 0) {
         preview.style.display = 'none';
         return;
     }
@@ -2732,9 +2774,32 @@ function updateQuickAddPreview() {
     // Afficher la prévisualisation
     preview.style.display = 'block';
     
-    // Afficher les cartes Pokémon
+    // Afficher les messages de validation
+    let validationMessage = '';
+    let validationType = 'success';
+    
+    if (invalidNumbers.length > 0) {
+        validationMessage = `⚠️ Numéros invalides ignorés : ${invalidNumbers.join(', ')}`;
+        validationType = 'warning';
+    }
+    
+    if (duplicateNumbers.length > 0) {
+        validationMessage += validationMessage ? '<br>' : '';
+        validationMessage += `⚠️ Doublons supprimés : ${duplicateNumbers.join(', ')}`;
+        validationType = 'warning';
+    }
+    
+    if (validationMessage) {
+        previewValidation.innerHTML = validationMessage;
+        previewValidation.className = `preview-validation ${validationType}`;
+    } else {
+        previewValidation.className = 'preview-validation';
+        previewValidation.style.display = 'none';
+    }
+    
+    // Afficher les cartes Pokémon avec animation
     previewNumbers.innerHTML = '';
-    quickAddNumbers.forEach(num => {
+    quickAddNumbers.forEach((num, index) => {
         const isAlreadyCaptured = capturedPokemon.has(num);
         const pokemonName = pokemonNamesData[num - 1]?.french || `Pokémon #${num}`;
         
@@ -2742,6 +2807,7 @@ function updateQuickAddPreview() {
         const card = document.createElement('div');
         card.className = `preview-pokemon-card ${isAlreadyCaptured ? 'already-captured' : ''}`;
         card.dataset.pokemonNumber = num;
+        card.style.animationDelay = `${index * 0.05}s`;
         
         card.innerHTML = `
             <div class="preview-pokemon-number">#${num.toString().padStart(3, '0')}</div>
@@ -2751,24 +2817,62 @@ function updateQuickAddPreview() {
         // Charger l'image de fond pour ce Pokémon
         loadPreviewPokemonImage(card, num);
         
+        // Ajouter un effet de clic pour voir les détails
+        card.addEventListener('click', () => {
+            showPokemonDetails(num, pokemonName, isAlreadyCaptured);
+        });
+        
         previewNumbers.appendChild(card);
     });
     
-    // Afficher les statistiques
+    // Afficher les statistiques améliorées
     const alreadyCaptured = quickAddNumbers.filter(num => capturedPokemon.has(num));
     const newToAdd = quickAddNumbers.filter(num => !capturedPokemon.has(num));
     
     previewStats.innerHTML = `
         <div class="preview-stat">
-            <span>Total : <span class="stat-value">${quickAddNumbers.length}</span></span>
+            <span>📊 Total : <span class="stat-value">${quickAddNumbers.length}</span></span>
         </div>
         <div class="preview-stat">
-            <span>Nouveaux : <span class="stat-value">${newToAdd.length}</span></span>
+            <span>🆕 Nouveaux : <span class="stat-value">${newToAdd.length}</span></span>
         </div>
         <div class="preview-stat">
-            <span>Déjà capturés : <span class="stat-value">${alreadyCaptured.length}</span></span>
+            <span>✅ Déjà capturés : <span class="stat-value">${alreadyCaptured.length}</span></span>
         </div>
+        ${newToAdd.length > 0 ? `
+        <div class="preview-stat">
+            <span>📈 Progression : <span class="stat-value">+${newToAdd.length}</span></span>
+        </div>
+        ` : ''}
     `;
+}
+
+// Fonction pour trier les numéros dans la prévisualisation
+function sortPreviewNumbers() {
+    const previewNumbers = document.getElementById('preview-numbers');
+    const cards = Array.from(previewNumbers.children);
+    
+    cards.sort((a, b) => {
+        const numA = parseInt(a.dataset.pokemonNumber);
+        const numB = parseInt(b.dataset.pokemonNumber);
+        return numA - numB;
+    });
+    
+    // Réorganiser les cartes avec animation
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.05}s`;
+        previewNumbers.appendChild(card);
+    });
+    
+    // Feedback visuel
+    showNotification('Numéros triés par ordre croissant', 'info');
+}
+
+// Fonction pour afficher les détails d'un Pokémon
+function showPokemonDetails(number, name, isCaptured) {
+    const status = isCaptured ? '✅ Capturé' : '❌ Non capturé';
+    const message = `#${number.toString().padStart(3, '0')} - ${name}\n${status}`;
+    showNotification(message, isCaptured ? 'success' : 'info');
 }
 
 // Fonction pour charger l'image d'un Pokémon dans la prévisualisation

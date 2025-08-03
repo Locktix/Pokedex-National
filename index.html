@@ -484,9 +484,22 @@
                         <textarea id="quick-add-input" class="quick-add-textarea" placeholder="Entrez les numéros ici..." rows="4"></textarea>
                     </div>
                     <div class="quick-add-preview" id="quick-add-preview" style="display: none;">
-                        <h4>Prévisualisation :</h4>
-                        <div class="preview-numbers" id="preview-numbers"></div>
-                        <div class="preview-stats" id="preview-stats"></div>
+                        <div class="preview-header">
+                            <h4>Prévisualisation</h4>
+                            <div class="preview-controls">
+                                <button id="sort-preview-btn" class="preview-control-btn" title="Trier par numéro">
+                                    <span class="control-icon">🔢</span>
+                                </button>
+                                <button id="clear-preview-btn" class="preview-control-btn" title="Effacer">
+                                    <span class="control-icon">🗑️</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="preview-content">
+                            <div class="preview-numbers" id="preview-numbers"></div>
+                            <div class="preview-stats" id="preview-stats"></div>
+                            <div class="preview-validation" id="preview-validation"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="quick-add-actions">
