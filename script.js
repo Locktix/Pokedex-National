@@ -1176,14 +1176,6 @@ document.addEventListener('keydown', (event) => {
                 nextPageBtn.click();
             }
             break;
-        case ' ':
-            event.preventDefault();
-            // Basculer la capture du Pokémon au centre de l'écran
-            const centerCard = document.querySelector('.pokemon-card:nth-child(8)');
-            if (centerCard) {
-                centerCard.click();
-            }
-            break;
     }
 });
 

@@ -77,7 +77,6 @@ Capturer tous les 1025 Pokémon pour compléter votre Pokédex ! Chaque Pokémon
 
 - **Flèche gauche** : Page précédente
 - **Flèche droite** : Page suivante
-- **Barre d'espace** : Capturer/relâcher le Pokémon au centre de l'écran
 
 ## 💾 Sauvegarde
 
