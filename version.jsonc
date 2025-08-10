@@ -1,0 +1,45 @@
+{
+  // Version actuelle de l'application
+  "version": "1.2.7",
+  
+  // Historique des changements par version
+  // Structure : version, date, et liste des changements avec emojis
+  // Emojis utilisés :
+  // ✨ = Nouvelle fonctionnalité
+  // 🔧 = Amélioration/Optimisation  
+  // 🐛 = Correction de bug
+  "changelogs": [
+    {
+      "version": "1.2.7",
+      "date": "15 janvier 2025",
+      "changes": [
+        "✨ Ajout d'un système de changelog pour suivre les mises à jour.",
+        "✨ Intégration de la navigation par swipe pour les pages de Pokémon."
+      ]
+    },
+    {
+      "version": "1.2.6", 
+      "date": "10 janvier 2025",
+      "changes": [
+        "🔧 Optimisation des performances de recherche et de filtrage.",
+        "🐛 Correction du bug d'affichage sur les appareils mobiles."
+      ]
+    },
+    {
+      "version": "1.2.5",
+      "date": "5 janvier 2025", 
+      "changes": [
+        "✨ Ajout du mode sombre pour une meilleure expérience utilisateur.",
+        "🔧 Interface utilisateur repensée avec un design plus moderne."
+      ]
+    },
+    {
+      "version": "1.2.4",
+      "date": "1 janvier 2025",
+      "changes": [
+        "🐛 Résolution des problèmes de synchronisation des données.",
+        "🔧 Amélioration de la stabilité générale de l'application."
+      ]
+    }
+  ]
+} 

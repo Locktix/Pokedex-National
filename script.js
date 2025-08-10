@@ -53,14 +53,27 @@ let filteredUsersList = [];
 const gridSizeBtn = document.getElementById('grid-size-btn');
 const pokemonGridElem = document.getElementById('pokemon-grid');
 
+// Fonction utilitaire pour parser le JSONC (JSON avec commentaires)
+function parseJSONC(text) {
+    // Supprimer les commentaires de ligne (// ...) en préservant les emojis
+    text = text.replace(/\/\/[^\r\n]*/g, '');
+    // Supprimer les commentaires de bloc (/* ... */) en préservant les emojis
+    text = text.replace(/\/\*[\s\S]*?\*\//g, '');
+    // Supprimer les lignes vides
+    text = text.replace(/^\s*[\r\n]/gm, '');
+    // Parser le JSON
+    return JSON.parse(text);
+}
+
 // Fonction pour charger et afficher la version dynamiquement
 async function loadAndDisplayVersion() {
     try {
-        const response = await fetch('version.json');
+        const response = await fetch('version.jsonc');
         if (!response.ok) {
-            throw new Error('Impossible de charger le fichier version.json');
+            throw new Error('Impossible de charger le fichier version.jsonc');
         }
-        const versionData = await response.json();
+        const text = await response.text();
+        const versionData = parseJSONC(text);
         const footerText = document.querySelector('.footer-text');
         if (footerText) {
             footerText.textContent = `Pokédex National © 2025 – par Locktix v${versionData.version}`;
@@ -582,6 +595,9 @@ function setupEventListeners() {
     if (collectionFilterCapture) {
         collectionFilterCapture.addEventListener('click', () => changeCollectionFilter('capture'));
     }
+    
+    // Initialiser le modal des changelogs
+    setupChangelogModal();
 }
 
 // ===== SWIPE NAVIGATION MOBILE =====
@@ -1192,23 +1208,28 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('[ADMIN] Bouton #manage-users introuvable dans le DOM');
     }
 
-    // Afficher la version du site dynamiquement depuis version.json
-    fetch('version.json')
-      .then(response => response.json())
-      .then(data => {
-        const footer = document.querySelector('.footer-minimal span');
-        if (footer && data.version) {
-          let versionText = ` · v${data.version}`;
-          let tooltip = '';
-          if (data.date || data.changelog) {
-            tooltip = 'Version : ' + data.version;
-            if (data.date) tooltip += '\nDate : ' + data.date;
-            if (data.changelog) tooltip += '\n' + data.changelog;
+    // Afficher la version du site dynamiquement depuis version.jsonc
+    fetch('version.jsonc')
+      .then(response => response.text())
+      .then(text => {
+        try {
+          const data = parseJSONC(text);
+          const footer = document.querySelector('.footer-minimal span');
+          if (footer && data.version) {
+            let versionText = ` · v${data.version}`;
+            let tooltip = '';
+            if (data.date || data.changelog) {
+              tooltip = 'Version : ' + data.version;
+              if (data.date) tooltip += '\nDate : ' + data.date;
+              if (data.changelog) tooltip += '\n' + data.changelog;
+            }
+            const versionSpan = document.createElement('span');
+            versionSpan.textContent = versionText;
+            if (tooltip) versionSpan.title = tooltip;
+            footer.appendChild(versionSpan);
           }
-          const versionSpan = document.createElement('span');
-          versionSpan.textContent = versionText;
-          if (tooltip) versionSpan.title = tooltip;
-          footer.appendChild(versionSpan);
+        } catch (error) {
+          console.error('Erreur lors du parsing de version.jsonc:', error);
         }
       });
 
@@ -3197,5 +3218,131 @@ async function handleCopyPokemonList() {
         exportTextarea.setSelectionRange(0, 99999); // Pour mobile
         document.execCommand('copy');
         showNotification('📋 Liste copiée dans le presse-papiers !', 'success');
+    }
+}
+
+// ===== GESTION DES CHANGELOGS =====
+
+// Charger les changelogs depuis version.jsonc
+async function loadChangelogs() {
+    try {
+        const response = await fetch('version.jsonc');
+        const text = await response.text();
+        const data = parseJSONC(text);
+        return data.changelogs || [];
+    } catch (error) {
+        console.error('Erreur lors du chargement des changelogs:', error);
+        return [];
+    }
+}
+
+// Rendre le contenu des changelogs
+function renderChangelogs(changelogs) {
+    const changelogContent = document.getElementById('changelog-content');
+    if (!changelogContent) return;
+    
+    if (!changelogs || changelogs.length === 0) {
+        changelogContent.innerHTML = '<p class="no-changelogs">Aucun changelog disponible pour le moment.</p>';
+        return;
+    }
+    
+    let html = '';
+    changelogs.forEach(version => {
+        html += `
+            <div class="changelog-version" data-version="${version.version}">
+                <div class="version-header">
+                    <h4 class="version-title">Version ${version.version}</h4>
+                    <span class="version-date">${version.date}</span>
+                </div>
+                <div class="version-changes">
+        `;
+        
+        version.changes.forEach(changeText => {
+            // Extraire l'emoji et le texte de la chaîne en utilisant une regex Unicode
+            const emojiMatch = changeText.match(/^(\p{Emoji})\s+(.+)$/u);
+            if (emojiMatch) {
+                const emoji = emojiMatch[1];
+                const text = emojiMatch[2];
+                const type = getChangeTypeFromEmoji(emoji);
+                
+                html += `
+                    <div class="change-item">
+                        <span class="change-type ${type}">${emoji}</span>
+                        <span class="change-text">${text}</span>
+                    </div>
+                `;
+            } else {
+                // Fallback si pas d'emoji détecté
+                html += `
+                    <div class="change-item">
+                        <span class="change-type other">📝</span>
+                        <span class="change-text">${changeText}</span>
+                    </div>
+                `;
+            }
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    changelogContent.innerHTML = html;
+}
+
+// Obtenir le type de changement selon l'emoji
+function getChangeTypeFromEmoji(emoji) {
+    switch (emoji) {
+        case '✨': return 'new';
+        case '🔧': return 'improvement';
+        case '🐛': return 'fix';
+        default: return 'other';
+    }
+}
+
+// Initialiser le modal des changelogs
+async function setupChangelogModal() {
+    const changelogBtn = document.getElementById('changelog-btn');
+    const changelogModal = document.getElementById('changelog-modal');
+    const closeChangelogBtn = document.getElementById('close-changelog');
+    
+    if (changelogBtn && changelogModal && closeChangelogBtn) {
+        // Ouvrir le modal et charger les changelogs
+        changelogBtn.addEventListener('click', async () => {
+            changelogModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Charger et afficher les changelogs
+            const changelogs = await loadChangelogs();
+            renderChangelogs(changelogs);
+        });
+        
+        // Fermer le modal
+        closeChangelogBtn.addEventListener('click', () => {
+            changelogModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Fermer en cliquant à l'extérieur
+        changelogModal.addEventListener('click', (e) => {
+            if (e.target === changelogModal) {
+                changelogModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        // Fermer avec la touche Échap
+        document.addEventListener('keydown', function handleEscape(e) {
+            if (e.key === 'Escape' && changelogModal.style.display === 'flex') {
+                changelogModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.removeEventListener('keydown', handleEscape);
+            }
+        });
+        
+        console.log('Modal des changelogs initialisé');
+    } else {
+        console.error('Éléments du modal des changelogs manquants');
     }
 }

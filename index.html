@@ -198,8 +198,34 @@
 
         
         <footer class="glass-footer">
-            <span class="footer-text">Pokédex National &copy; 2025 – par Locktix</span>
+            <div class="footer-content">
+                <span class="footer-text">Pokédex National &copy; 2025 – par Locktix</span>
+                <button id="changelog-btn" class="changelog-btn" title="Voir les changelogs">
+                    <span class="changelog-icon">📝</span>
+                    <span class="changelog-text">Changelog</span>
+                </button>
+            </div>
         </footer>
+    </div>
+
+    <!-- Modal des changelogs -->
+    <div id="changelog-modal" class="modal" style="display: none;">
+        <div class="modal-content glass-modal changelog-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <span class="modal-icon">📝</span>
+                    <span class="modal-text">Changelog</span>
+                </h3>
+                <button id="close-changelog" class="close-btn">
+                    <span class="close-icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                                     <div class="changelog-content" id="changelog-content">
+                         <!-- Le contenu sera chargé dynamiquement depuis version.jsonc -->
+                     </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal des paramètres -->

@@ -26,6 +26,12 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # Gérer les requêtes OPTIONS pour CORS
         self.send_response(200)
         self.end_headers()
+    
+    def guess_type(self, path):
+        # Spécifier l'encodage UTF-8 pour les fichiers JSON et JSONC
+        if path.endswith('.json') or path.endswith('.jsonc'):
+            return 'application/json; charset=utf-8'
+        return super().guess_type(path)
 
 def main():
     # Changer vers le répertoire du script
